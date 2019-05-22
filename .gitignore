@@ -29,3 +29,6 @@ bin/
 build/
 .project/
 .classpath/
+server/*
+!server/BuildTools.jar
+!server/run.bat

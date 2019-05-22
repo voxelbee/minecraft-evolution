@@ -1,34 +1,14 @@
 package come.evolution.main;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.evolution.network.EnumConnectionState;
-import com.evolution.network.EnumPacketDirection;
 import com.evolution.network.handler.LoginHandler;
 import com.evolution.network.handler.NettyManager;
 import com.evomine.decode.PacketLayout;
 import com.evomine.decode.Protocol;
-import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 public class Main
 {
@@ -43,7 +23,7 @@ public class Main
 		manager.setNetHandler(new LoginHandler(manager));
 		
 		PacketLayout C00Handshake = PROTOCOL.getPacketFromName(EnumConnectionState.HANDSHAKING, "packet_set_protocol").createReadWritePacket();
-		C00Handshake.variables.put("protocolVersion", 335);
+		C00Handshake.variables.put("protocolVersion", PROTOCOL.getProtocol());
 		C00Handshake.variables.put("serverHost", ip);
 		C00Handshake.variables.put("serverPort", (short)port);
 		C00Handshake.variables.put("nextState", EnumConnectionState.LOGIN.getId());

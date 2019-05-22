@@ -3,16 +3,17 @@ package com.evomine.decode;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
 import com.evolution.network.handler.PacketStates;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -22,24 +23,36 @@ public class Protocol
 {
 	private JsonObject protocolObject;
 	private List<PacketStates> allPackets = new ArrayList<PacketStates>();
+	private int protocol;
+	private String mcVersion;
+	private static final String BASE_URL = "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/"; 
 	
 	/**
 	 * Creates a new protocol manager with the specified minecraft version
 	 * @param mcVersion
 	 */
-	public Protocol(String mcVersion)
+	public Protocol(String inMcVersion)
 	{
-		System.out.println("Setting up the protocol for Minecraft version " + mcVersion);
+		this.mcVersion = inMcVersion; 
+		System.out.println("Setting up the protocol for Minecraft version " + this.mcVersion);
+		
+		JsonObject root = loadFromUrl("dataPaths.json");
+		String versionLocation = null;
+		String protocolLocation = null;
 		
 		try
 		{
-			protocolObject = loadProtocol("C:/tmp/protocol-" + mcVersion + ".json");
+			versionLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("version").getAsString() + "/version.json";
+			protocolLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("protocol").getAsString() + "/protocol.json";
 		}
-		catch (FileNotFoundException e)
+		catch(Exception e)
 		{
-			System.out.println("ERROR: Could not find Minecraft protocol definition for version " + mcVersion);
+			System.out.println("Invalid minecraft version no protocol data found: " + this.mcVersion);
 			System.exit(0);
 		}
+		
+		this.protocol = loadFromUrl(versionLocation).get("version").getAsInt();
+		this.protocolObject = loadFromUrl(protocolLocation);
 		
 		for (int i = 0; i < EnumConnectionState.values().length; i++)
 		{
@@ -47,6 +60,26 @@ public class Protocol
 		}
 		
 		reloadPackets();
+	}
+	
+	private JsonObject loadFromUrl(String surl)
+	{
+		try
+		{
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new URL(BASE_URL + surl).openStream()));
+			return Main.GSON.fromJson(bufferedReader, JsonObject.class);
+		}
+		catch (MalformedURLException e)
+		{
+			System.out.println("Incorrect url format: " + BASE_URL + surl);
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			System.out.println("Could not load URL: " + BASE_URL + surl);
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	public void reloadPackets()
@@ -161,5 +194,10 @@ public class Protocol
 			System.out.println("Could not find packet: " + name + " in state: " + state);
 			return null;
 		}
+	}
+
+	public int getProtocol()
+	{
+		return protocol;
 	}
 }

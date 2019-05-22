@@ -15,7 +15,6 @@ import com.evomine.decode.PacketLayout;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import come.evolution.main.Main;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -30,7 +29,6 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.local.LocalChannel;
-import io.netty.channel.local.LocalEventLoopGroup;
 import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -45,14 +43,12 @@ import java.net.SocketAddress;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
-import javax.crypto.SecretKey;
 
 import org.apache.commons.lang3.ArrayUtils;
 
 public class NettyManager extends SimpleChannelInboundHandler<PacketLayout>
 {
     public static final AttributeKey<EnumConnectionState> PROTOCOL_ATTRIBUTE_KEY = AttributeKey.<EnumConnectionState>valueOf("protocol");
-    private final EnumPacketDirection direction;
     private final Queue<NettyManager.InboundHandlerTuplePacketListener> outboundPacketsQueue = Queues.<NettyManager.InboundHandlerTuplePacketListener>newConcurrentLinkedQueue();
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -69,11 +65,6 @@ public class NettyManager extends SimpleChannelInboundHandler<PacketLayout>
     private String terminationReason;
     private boolean isEncrypted;
     private boolean disconnected;
-
-    public NettyManager(EnumPacketDirection packetDirection)
-    {
-        this.direction = packetDirection;
-    }
 
     public void channelActive(ChannelHandlerContext p_channelActive_1_) throws Exception
     {
@@ -322,7 +313,7 @@ public class NettyManager extends SimpleChannelInboundHandler<PacketLayout>
      */
     public static NettyManager createNetworkManagerAndConnect(InetAddress address, int serverPort, boolean useNativeTransport)
     {
-        final NettyManager networkmanager = new NettyManager(EnumPacketDirection.CLIENTBOUND);
+        final NettyManager networkmanager = new NettyManager();
         Class <? extends SocketChannel > oclass;
         LazyLoadBase <? extends EventLoopGroup > lazyloadbase;
 

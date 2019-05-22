@@ -3,13 +3,6 @@ package com.evolution.network.handler;
 import com.evolution.network.EnumConnectionState;
 import com.evomine.decode.PacketLayout;
 
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
-import java.math.BigInteger;
-import java.security.PublicKey;
-import javax.annotation.Nullable;
-import javax.crypto.SecretKey;
-
 public class LoginHandler implements ILoginHandler
 {    
     private final NettyManager networkManager;
