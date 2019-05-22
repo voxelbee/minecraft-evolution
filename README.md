@@ -17,3 +17,4 @@ A system to write evolving AI within the game minecraft
 2. run the command `java -jar BuildTools.jar --rev 1.14.1` you can change the version to be what ever you want
 3. Update the run.bat file if you changed the Minecraft version to the new version
 4. Run the server and except the eula
+5. Edit server.txt file and set online mode to false
