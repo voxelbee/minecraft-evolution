@@ -27,7 +27,7 @@ public class BufferDecoderTest
 		Main.dummy();
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		
-		for (int i = 1; i < 10; i++)
+		for (int i = 1; i < 2; i++)
 		{
 			URI path = classloader.getResource("buffers/buffer" + i).toURI();
 			if (i < 2)
@@ -39,8 +39,6 @@ public class BufferDecoderTest
 				decode(path, EnumConnectionState.PLAY);
 			}
 		}
-		
-		assertTrue(false);
 	}
 	
 	private void decode(URI path, EnumConnectionState state) throws IOException
