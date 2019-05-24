@@ -103,8 +103,10 @@ public class Protocol
 		return this.protocol.getAsJsonObject("types");
 	}
 	
-	public void decodeBuffer(ByteBuf buf, Map<String, Object> vars, EnumConnectionState state)
+	public Map<String, Object> decodeBuffer(ByteBuf buf, EnumConnectionState state)
 	{
+	   Map<String, Object> vars = new LinkedHashMap<String, Object>();
 		PacketDeserializer.deserialize(protocol, vars, buf, state);
+		return vars;
 	}
 }
