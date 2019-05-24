@@ -1,18 +1,32 @@
 package com.evomine.decode;
 
-import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
+import com.evolution.network.EnumConnectionState;
+import com.evolution.network.EnumPacketDirection;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
-public class PacketDeserializer implements JsonDeserializer<Packet>
+import io.netty.buffer.ByteBuf;
+
+public class PacketDeserializer
 {
-	@Override
-    public Packet deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException
+    public static void deserialize(JsonElement json,
+    		LinkedHashMap<String, Object> vars,
+    		ByteBuf buf,
+    		EnumConnectionState state) throws JsonParseException
 	{
-        Packet packet = new Packet("name");
-        return packet;
+    	packetDesrialize(json.getAsJsonObject().getAsJsonObject(state.getAsString()).getAsJsonObject(EnumPacketDirection.CLIENTBOUND.getAsString()), vars, buf);
+    }
+    
+    private static void packetDesrialize(JsonElement json,
+    		LinkedHashMap<String, Object> vars,
+    		ByteBuf buf) throws JsonParseException
+    {
+    	if (json.getAsJsonObject().has("types"))
+    	{
+			
+		}
+    	System.out.println(json);
     }
 }

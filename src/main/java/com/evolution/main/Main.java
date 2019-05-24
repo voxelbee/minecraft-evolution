@@ -27,11 +27,11 @@ public class Main
 	
 	public static void main(String[] args) throws IOException
 	{
-		byte[] fileContent = Files.readAllBytes((new File("C:/tmp/buffers/buffer11")).toPath());
+		byte[] fileContent = Files.readAllBytes((new File("C:/tmp/buffers/buffer1")).toPath());
 		ByteBuf buf = Unpooled.wrappedBuffer(fileContent);
 		
 		LinkedHashMap<String, Object> vars = new LinkedHashMap<String, Object>();
-		PROTOCOL.decodeBuffer(buf, vars, EnumConnectionState.PLAY);
+		PROTOCOL.decodeBuffer(buf, vars, EnumConnectionState.LOGIN);
 		
 		//String ip = "localhost";
 		//int port = 25565;

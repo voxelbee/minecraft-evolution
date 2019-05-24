@@ -1,30 +1,16 @@
 package com.evomine.decode;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
 
 import com.evolution.main.EnumLoggerType;
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
-import com.evolution.network.EnumPacketDirection;
-import com.evolution.network.handler.PacketStates;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import io.netty.buffer.ByteBuf;
@@ -114,14 +100,7 @@ public class Protocol
 	
 	public void decodeBuffer(ByteBuf buf, LinkedHashMap<String, Object> vars, EnumConnectionState state)
 	{
-		GsonBuilder gsonBuilder = new GsonBuilder();
-
-		PacketDeserializer de = new PacketDeserializer();
-		gsonBuilder.registerTypeAdapter(Packet.class, de);
-
-		Gson customGson = gsonBuilder.create();  
-		Packet customObject = customGson.fromJson(protocol, Packet.class);  
-		System.out.println(customObject.name);
-		System.out.println(customObject.getVariables());
+		PacketDeserializer.deserialize(protocol, vars, buf, state);
+		System.out.println(vars);
 	}
 }
