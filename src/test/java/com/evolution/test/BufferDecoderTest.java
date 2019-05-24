@@ -22,11 +22,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class BufferDecoderTest
-{	
+{
+  private static final Protocol PROTOCOL = Main.PROTOCOL;
+  
 	// @Test
 	public void testDecodeBuffers() throws IOException, URISyntaxException
 	{
-		Main.dummy();
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		
 		for (int i = 1; i < 2; i++)
@@ -46,7 +47,6 @@ public class BufferDecoderTest
 	@Test
 	public void testDecodeBuffer1() throws Exception
 	{
-		Main.dummy();
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
 		URI path = classloader.getResource("buffers/buffer1").toURI();
@@ -59,7 +59,6 @@ public class BufferDecoderTest
 	//@Test
 	public void testDecodeBuffer2() throws Exception
 	{
-		Main.dummy();
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
 		URI path = classloader.getResource("buffers/buffer2").toURI();
@@ -75,7 +74,7 @@ public class BufferDecoderTest
 		ByteBuf buf = Unpooled.wrappedBuffer(fileContent);
 		
 		Map<String, Object> vars = new LinkedHashMap<String, Object>();
-		Main.PROTOCOL.decodeBuffer(buf, vars, state);
+		PROTOCOL.decodeBuffer(buf, vars, state);
 		System.out.println(vars);
 		assertEquals(0, buf.readableBytes());
 		return vars;
