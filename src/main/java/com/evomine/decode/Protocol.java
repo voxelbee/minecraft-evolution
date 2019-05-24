@@ -1,94 +1,92 @@
 package com.evomine.decode;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
+import com.evolution.main.EnumLoggerType;
+import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
 import com.evolution.network.handler.PacketStates;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import come.evolution.main.Main;
+import io.netty.buffer.ByteBuf;
 
 public class Protocol
 {
-	private JsonObject protocolObject;
-	private List<PacketStates> allPackets = new ArrayList<PacketStates>();
-	private int protocol;
+	private JsonObject protocol;
+	private int protocolVersion;
 	private String mcVersion;
-	private static final String BASE_URL = "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/"; 
 	
 	/**
 	 * Creates a new protocol manager with the specified minecraft version
 	 * @param mcVersion
+	 * @throws FileNotFoundException 
 	 */
 	public Protocol(String inMcVersion)
 	{
 		this.mcVersion = inMcVersion; 
-		System.out.println("Setting up the protocol for Minecraft version " + this.mcVersion);
-		
-		JsonObject root = loadFromUrl("dataPaths.json");
-		String versionLocation = null;
-		String protocolLocation = null;
+		Main.LOGGER.log(EnumLoggerType.INFO, "Setting up the protocol for Minecraft version " + this.mcVersion);
 		
 		try
 		{
-			versionLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("version").getAsString() + "/version.json";
-			protocolLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("protocol").getAsString() + "/protocol.json";
+			JsonObject root = loadJson("protocol/dataPaths.json");
+			String versionLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("version").getAsString() + "/version.json";
+			String protocolLocation = root.getAsJsonObject("pc").getAsJsonObject(this.mcVersion).get("protocol").getAsString() + "/protocol.json";
+			
+			this.protocolVersion = loadJson("protocol/" + versionLocation).get("version").getAsInt();
+			this.protocol = loadJson("protocol/" + protocolLocation);
 		}
-		catch(Exception e)
+		catch (Exception e1)
 		{
-			System.out.println("Invalid minecraft version no protocol data found: " + this.mcVersion);
+			Main.LOGGER.log(EnumLoggerType.ERROR, "Invalid minecraft version no protocol data found: " + this.mcVersion);
+			e1.printStackTrace();
 			System.exit(0);
 		}
 		
-		this.protocol = loadFromUrl(versionLocation).get("version").getAsInt();
-		this.protocolObject = loadFromUrl(protocolLocation);
+		Main.LOGGER.log(EnumLoggerType.INFO, "Prococol version loaded: " + this.protocolVersion);
 		
-		for (int i = 0; i < EnumConnectionState.values().length; i++)
+		JsonObject nbts = loadNbt();
+		JsonObject types = protocol.get("types").getAsJsonObject();
+		
+		for (String key : nbts.keySet())
 		{
-			allPackets.add(new PacketStates());
+			types.add(key, nbts.get(key));
 		}
-		
-		reloadPackets();
+		types.addProperty("optionalNbt", "nbt");
+		Main.LOGGER.log(EnumLoggerType.INFO, "Loaded all data types for protocol");
 	}
 	
-	private JsonObject loadFromUrl(String surl)
+	private JsonObject loadNbt()
 	{
 		try
 		{
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new URL(BASE_URL + surl).openStream()));
-			return Main.GSON.fromJson(bufferedReader, JsonObject.class);
+			return loadJson("protocol/nbt.json");
 		}
-		catch (MalformedURLException e)
+		catch (Exception e1)
 		{
-			System.out.println("Incorrect url format: " + BASE_URL + surl);
-			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
-			System.out.println("Could not load URL: " + BASE_URL + surl);
-			e.printStackTrace();
+			Main.LOGGER.log(EnumLoggerType.ERROR, "Could not load nbt protocol data: " + this.mcVersion);
+			e1.printStackTrace();
+			System.exit(0);
 		}
 		return null;
-	}
-	
-	public void reloadPackets()
-	{
-		System.out.println("Reloading packets...");
-		for (EnumConnectionState state : EnumConnectionState.values())
-		{
-			this.loadPackets(state);
-		}
 	}
 	
 	/**
@@ -96,108 +94,34 @@ public class Protocol
 	 * @param path - File location of the json
 	 * @throws FileNotFoundException
 	 */
-	private JsonObject loadProtocol(String path) throws FileNotFoundException
+	private JsonObject loadJson(String path) throws FileNotFoundException
 	{
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream is = classloader.getResourceAsStream(path);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         return Main.GSON.fromJson(bufferedReader, JsonObject.class);
 	}
-	
-	/**
-	 * Loads in the packets for a specific state (loads server and client packets)
-	 * @param state - State to load packets from
-	 */
-	public void loadPackets(EnumConnectionState state)
-	{
-		System.out.println("Loading " + state + " packets");
-		
-		for (EnumPacketDirection direction : EnumPacketDirection.values())
-		{
-			JsonObject packetNames = this.protocolObject.getAsJsonObject(state.getAsString())
-		    		.getAsJsonObject(direction.getAsString())
-		    		.getAsJsonObject("types")
-		    		.getAsJsonArray("packet")
-		    		.get(1).getAsJsonArray()
-		    		.get(0).getAsJsonObject()
-		    		.getAsJsonArray("type")
-		    		.get(1).getAsJsonObject()
-		    		.getAsJsonObject("mappings");
-			
-			JsonObject packetsData = this.protocolObject.getAsJsonObject(state.getAsString())
-		    		.getAsJsonObject(direction.getAsString())
-		    		.getAsJsonObject("types");
-			
-		    Set<String> keys = packetNames.keySet();
-		    
-    	    for (String string : keys)
-    	    {
-    	    	int packetId = Integer.decode(string);
-    	    	String packetName = "packet_" + packetNames.get(string).getAsString();
-    	    	
-    	    	JsonArray data = packetsData.getAsJsonArray(packetName)
-    		    		.get(1).getAsJsonArray();
-    	    	
-    	    	List<String> names = new ArrayList<String>();
-    	    	List<String> types = new ArrayList<String>();
-    	    	
-    	    	for (int i = 0; i < data.size(); i++)
-    	    	{
-    	    		try
-    	    		{
-        	    		names.add(data.get(i).getAsJsonObject().get("name").getAsString());
-    	    		}
-    	    		catch(NullPointerException e)
-    	    		{
-    	    			System.out.println("Name field not found: " + data.get(i).getAsJsonObject());
-    	    		}
-    	    		try
-    	    		{
-    	    			types.add(data.get(i).getAsJsonObject().get("type").getAsString());
-    	    		}
-    	    		catch (IllegalStateException e)
-    	    		{
-    	    			System.out.println("Unkown data type: " + data.get(i).getAsJsonObject().get("type"));
-    	    			types.add(null);
-					}
-				}
-    	    	
-    	    	PacketLayout layout = new PacketLayout(packetId, packetName, state, names, types);
-    	    	this.allPackets.get(state.getId() + 1).packets.add(layout);
-    		    
-    	    	this.allPackets.get(state.getId() + 1).idToIndex.get(direction.getId()).put(packetId, this.allPackets.get(state.getId() + 1).packets.size() - 1);
-    	    	this.allPackets.get(state.getId() + 1).indexToId.get(direction.getId()).put(this.allPackets.get(state.getId() + 1).packets.size() - 1, packetId);
-    	    	this.allPackets.get(state.getId() + 1).nameToIndex.get(direction.getId()).put(packetName, this.allPackets.get(state.getId() + 1).packets.size() - 1);
-    		}
-		}
-		System.out.println("Done loading " + state + " packets");
-	}
-	
-	public PacketLayout getPacketFromId(EnumConnectionState state, int id)
-	{
-		return this.allPackets.get(state.getId() + 1).packets.get(this.allPackets.get(state.getId() + 1).idToIndex.get(EnumPacketDirection.CLIENTBOUND.getId()).get(id));
-	}
-	
-	/**
-	 * Loads packet from the name specified and the connection state. If the current state is not loaded will
-	 * load in the inputed state
-	 * @param state - The state that the packet is part of
-	 * @param name - Name of the packet
-	 * @return
-	 */
-	public PacketLayout getPacketFromName(EnumConnectionState state, String name)
-	{
-		try
-		{
-			return this.allPackets.get(state.getId() + 1).packets.get(this.allPackets.get(state.getId() + 1).nameToIndex.get(EnumPacketDirection.SERVERBOUND.getId()).get(name));
-		}
-		catch(IndexOutOfBoundsException e)
-		{
-			System.out.println("Could not find packet: " + name + " in state: " + state);
-			return null;
-		}
-	}
 
-	public int getProtocol()
+	public int getVersion()
 	{
-		return protocol;
+		return this.protocolVersion;
+	}
+	
+	public JsonObject getProtocol()
+	{
+		return this.protocol;
+	}
+	
+	public void decodeBuffer(ByteBuf buf, LinkedHashMap<String, Object> vars, EnumConnectionState state)
+	{
+		GsonBuilder gsonBuilder = new GsonBuilder();
+
+		PacketDeserializer de = new PacketDeserializer();
+		gsonBuilder.registerTypeAdapter(Packet.class, de);
+
+		Gson customGson = gsonBuilder.create();  
+		Packet customObject = customGson.fromJson(protocol, Packet.class);  
+		System.out.println(customObject.name);
+		System.out.println(customObject.getVariables());
 	}
 }

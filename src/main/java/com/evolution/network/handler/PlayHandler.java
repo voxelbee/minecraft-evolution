@@ -245,7 +245,7 @@ public class PlayHandler implements IPlayHandler
 	@Override
 	public void handleJoinGame(PacketLayout packetIn)
 	{
-		
+		System.out.println(packetIn.variables);
 	}
 
 	@Override

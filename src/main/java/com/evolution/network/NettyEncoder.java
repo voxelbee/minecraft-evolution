@@ -6,11 +6,9 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.io.IOException;
 
+import com.evolution.main.Main;
 import com.evolution.network.handler.NettyManager;
 import com.evomine.decode.PacketLayout;
-
-import come.evolution.main.Main;
-
 import com.evomine.decode.BufferUtils;
 
 public class NettyEncoder extends MessageToByteEncoder<PacketLayout>
