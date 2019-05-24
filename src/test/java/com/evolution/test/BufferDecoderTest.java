@@ -1,5 +1,7 @@
 package com.evolution.test;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -37,6 +39,8 @@ public class BufferDecoderTest
 				decode(path, EnumConnectionState.PLAY);
 			}
 		}
+		
+		assertTrue(false);
 	}
 	
 	private void decode(URI path, EnumConnectionState state) throws IOException
