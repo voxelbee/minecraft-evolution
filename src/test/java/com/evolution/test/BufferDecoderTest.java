@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.evolution.main.Main;
@@ -25,7 +26,8 @@ public class BufferDecoderTest
 {
   private static final Protocol PROTOCOL = Main.PROTOCOL;
   
-	// @Test
+  @Ignore("WIP")
+	@Test
 	public void testDecodeBuffers() throws IOException, URISyntaxException
 	{
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
@@ -56,7 +58,8 @@ public class BufferDecoderTest
 		assertEquals(Collections.singletonMap("threshold", 0), result.get("params"));
 	}
 	
-	//@Test
+  @Ignore("WIP")
+	@Test
 	public void testDecodeBuffer2() throws Exception
 	{
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
