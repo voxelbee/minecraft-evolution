@@ -1,4 +1,4 @@
-# minecraft-evolution
+# minecraft-evolution [![Build Status](https://semaphoreci.com/api/v1/projects/b5658be0-0e05-4ae2-95df-759fd9561ab7/2717468/badge.svg)](https://semaphoreci.com/voxelbee-87/minecraft-evolution)
 A system to write evolving AI within the game minecraft
 
 ## To Do
