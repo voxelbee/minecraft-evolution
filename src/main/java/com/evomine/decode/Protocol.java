@@ -5,12 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.evolution.main.EnumLoggerType;
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import io.netty.buffer.ByteBuf;
@@ -98,9 +97,8 @@ public class Protocol
 		return this.protocol;
 	}
 	
-	public void decodeBuffer(ByteBuf buf, LinkedHashMap<String, Object> vars, EnumConnectionState state)
+	public void decodeBuffer(ByteBuf buf, Map<String, Object> vars, EnumConnectionState state)
 	{
 		PacketDeserializer.deserialize(protocol, vars, buf, state);
-		System.out.println(vars);
 	}
 }

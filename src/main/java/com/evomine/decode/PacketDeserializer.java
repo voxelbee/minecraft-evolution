@@ -1,6 +1,7 @@
 package com.evomine.decode;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
@@ -12,7 +13,7 @@ import io.netty.buffer.ByteBuf;
 public class PacketDeserializer
 {
     public static void deserialize(JsonElement json,
-    		LinkedHashMap<String, Object> vars,
+    		Map<String, Object> vars,
     		ByteBuf buf,
     		EnumConnectionState state) throws JsonParseException
 	{
@@ -20,13 +21,9 @@ public class PacketDeserializer
     }
     
     private static void packetDesrialize(JsonElement json,
-    		LinkedHashMap<String, Object> vars,
+    		Map<String, Object> vars,
     		ByteBuf buf) throws JsonParseException
     {
-    	if (json.getAsJsonObject().has("types"))
-    	{
-			
-		}
     	System.out.println(json);
     }
 }
