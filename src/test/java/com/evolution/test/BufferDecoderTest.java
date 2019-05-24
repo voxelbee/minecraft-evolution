@@ -18,14 +18,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class BufferDecoderTest
-{
-	Protocol protocol;
-	
+{	
 	@Test
 	public void testDecodeBuffers() throws IOException, URISyntaxException
 	{
 		Main.dummy();
-		protocol = new Protocol("1.12");
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		
 		for (int i = 1; i < 10; i++)
@@ -48,6 +45,6 @@ public class BufferDecoderTest
 		ByteBuf buf = Unpooled.wrappedBuffer(fileContent);
 		
 		LinkedHashMap<String, Object> vars = new LinkedHashMap<String, Object>();
-		protocol.decodeBuffer(buf, vars, state);
+		Main.PROTOCOL.decodeBuffer(buf, vars, state);
 	}
 }
