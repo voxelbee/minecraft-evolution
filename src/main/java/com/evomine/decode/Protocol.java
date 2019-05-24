@@ -57,6 +57,7 @@ public class Protocol
 		}
 		types.addProperty("optionalNbt", "nbt");
 		Main.LOGGER.log(EnumLoggerType.INFO, "Loaded all data types for protocol");
+		types.addProperty("string", "native");
 	}
 	
 	private JsonObject loadNbt()
@@ -95,6 +96,11 @@ public class Protocol
 	public JsonObject getProtocol()
 	{
 		return this.protocol;
+	}
+	
+	public JsonObject getValues()
+	{
+		return this.protocol.getAsJsonObject("types");
 	}
 	
 	public void decodeBuffer(ByteBuf buf, Map<String, Object> vars, EnumConnectionState state)
