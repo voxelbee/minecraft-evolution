@@ -1,0 +1,2 @@
+net.minecraft.network.login.server.SPacketEnableCompression
+{"compressionThreshold":256}

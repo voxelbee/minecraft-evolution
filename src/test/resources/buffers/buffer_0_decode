@@ -1,0 +1,2 @@
+net.minecraft.network.status.server.SPacketServerInfo
+{"response":{"description":{"text":"A Minecraft Server","siblings":[],"style":{}},"players":{"maxPlayers":20,"onlinePlayerCount":0},"version":{"name":"1.12","protocol":335}}}

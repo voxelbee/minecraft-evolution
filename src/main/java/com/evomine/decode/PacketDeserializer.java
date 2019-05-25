@@ -97,9 +97,16 @@ public class PacketDeserializer
   private static String processMapper( final JsonElement json, final ByteBuf buf )
   {
     int mapping = BufferUtils.readVarIntFromBuffer( buf );
-    String mappingS = "0x" + String.format( "%1$02X", mapping );
-    String value = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "mappings" ).getAsJsonObject().get( mappingS ).getAsString();
-    return value;
+    String mappingS = "0x" + String.format( "%1$02X", mapping ).toLowerCase();
+    JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().getAsJsonObject( "mappings" ).get(mappingS);
+    if (element != null)
+    {
+        return element.getAsString();
+	}
+    else
+    {
+		throw new UnsupportedOperationException( "Unknown packet type " + mappingS);
+    }
   }
 
   private static Object readNative( final String type, final ByteBuf buf )
@@ -107,6 +114,31 @@ public class PacketDeserializer
     if ( type.equals( "varint" ) )
     {
       return BufferUtils.readVarIntFromBuffer( buf );
+    }
+    else if( type.equals( "i32" ) )
+    {
+    	return buf.readInt();
+    }
+    else if( type.equals( "u8" ) )
+    {
+    	return buf.readUnsignedByte();
+    }
+    else if( type.equals( "i8" ) )
+    {
+    	return buf.readByte();
+    }
+    else if( type.equals( "f32" ) )
+    {
+    	return buf.readFloat();
+    }
+    else if( type.equals( "bool" ) )
+    {
+    	return buf.readBoolean();
+    }
+    else if( type.equals( "restBuffer" ) )
+    {
+    	int count = BufferUtils.readVarIntFromBuffer( buf );
+    	return buf.readBytes(count);
     }
     else if ( type.equals( "string" ) )
     {

@@ -1,0 +1,2 @@
+net.minecraft.network.play.server.SPacketPlayerAbilities
+{"invulnerable":false,"flying":false,"allowFlying":false,"creativeMode":false,"flySpeed":0.05,"walkSpeed":0.1}

@@ -106,7 +106,7 @@ public class Protocol
 	public Map<String, Object> decodeBuffer(ByteBuf buf, EnumConnectionState state)
 	{
 	   Map<String, Object> vars = new LinkedHashMap<String, Object>();
-		PacketDeserializer.deserialize(protocol, vars, buf, state);
-		return vars;
+	   PacketDeserializer.deserialize(protocol, vars, buf, state);
+	   return vars;
 	}
 }

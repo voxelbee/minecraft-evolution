@@ -1,0 +1,2 @@
+net.minecraft.network.play.server.SPacketServerDifficulty
+{"difficulty":"EASY","difficultyLocked":false}

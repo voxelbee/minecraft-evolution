@@ -1,0 +1,2 @@
+net.minecraft.network.play.server.SPacketPlayerListItem
+{"action":"ADD_PLAYER","players":[{"ping":0,"gamemode":"SURVIVAL","profile":{"id":"7beaed24-0a62-3f97-b968-4d6f3b3f19c7","name":"Player15","properties":{"properties":{}},"legacy":false}}]}
