@@ -9,9 +9,11 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.evolution.main.Main;
@@ -97,6 +99,40 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
+  @Test
+  public void testDecodeBuffer10() throws Exception
+  {
+    ExpectedAndBuffer values = get( "buffers/buffer_10");
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    assertEquals( 2, vars.size() );
+    System.out.println(vars);
+    assertEquals( "unlock_recipes", vars.get( "name" ));
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( 5, params.size() );
+    assertEquals( 0, params.get( "action" ));
+    assertEquals( false, params.get( "craftingBookOpen" ));
+    assertEquals( false, params.get( "filteringCraftable" ));
+    assertEquals( Collections.emptyMap(), params.get( "recipes1" ));
+    assertEquals( Collections.emptyMap(), params.get( "recipes2" ));
+    assertEquals( 0, values.buffer.readableBytes() );
+  }
+
+  @Ignore("WIP")
+  @Test
+  public void testDecodeAll() throws Exception
+  {
+    for(int i=0; i< 1000; i++)
+    {
+      if ( i == 5)
+      {
+        continue;
+      }
+      System.out.println(i);
+      ExpectedAndBuffer values = get( "buffers/buffer_" + i);
+      Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    }
+  }
+
   private ExpectedAndBuffer get(final String filename ) throws IOException, URISyntaxException
   {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
@@ -120,6 +156,10 @@ public class BufferDecoderTest
     else if ( className.contains( "status" ))
     {
       return EnumConnectionState.STATUS;
+    }
+    else if ( className.contains( "play" ))
+    {
+      return EnumConnectionState.PLAY;
     }
     else
     {

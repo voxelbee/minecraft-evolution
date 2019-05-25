@@ -65,6 +65,11 @@ public class PacketDeserializer
         JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject().get( key );
         packetDeserialize( element, all, vars, varName, buf );
       }
+      else if ( objectType.equals( "array" ) )
+      {
+        Object arrayValue = processArray( array, buf );
+        vars.put( varName, arrayValue );
+      }
       else
       {
         throw new UnsupportedOperationException("Unknown element " + objectType);
@@ -96,6 +101,17 @@ public class PacketDeserializer
         }
       }
     }
+  }
+
+  private static Object processArray( final JsonArray json, final ByteBuf buf )
+  {
+    Map< String, Object > values = new LinkedHashMap< String, Object >();
+    int numElements = BufferUtils.readVarIntFromBuffer( buf );
+    if ( numElements == 0 )
+    {
+      return values;
+    }
+    throw new UnsupportedOperationException("Array not implemented");
   }
 
   private static String processMapper( final JsonElement json, final ByteBuf buf )
