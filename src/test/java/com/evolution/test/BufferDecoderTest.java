@@ -158,12 +158,29 @@ public class BufferDecoderTest
     assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
   }
 
-  @Test
+  // @Test
+  public void testDecodeBuffer73() throws Exception
+  {
+    ExpectedAndBuffer values = get( "buffers/buffer_73" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, values.buffer.readableBytes() );
+    assertEquals( "map_chunk", vars.get( "name" ) );
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( 6, params.size() );
+    assertEquals( -9, params.get( "x" ) );
+    assertEquals( 3, params.get( "z" ) );
+    assertEquals( 63, params.get( "bitMap" ) );
+    assertEquals( 37244, ( (byte[]) params.get( "chunkData" ) ).length );
+    assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
+  }
+
+  // @Test
   public void testDecodeAll() throws Exception
   {
-    for ( int i = 0; i < 20; i++ )
+    for ( int i = 0; i < 76; i++ )
     {
-      if ( i == 5 )
+      if ( i == 5 || i == 72 || i == 21 || i == 37 || i == 58 )
       {
         continue;
       }

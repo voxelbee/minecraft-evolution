@@ -3,6 +3,7 @@ package com.evomine.decode;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -76,6 +77,11 @@ public class PacketDeserializer
         Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
+      else if ( classType.equals( "nbtSwitch" ) )
+      {
+        Object value = processNbtSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
       else if ( classType.equals( "array" ) )
       {
         List< Object > value = processArray( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
@@ -89,6 +95,11 @@ public class PacketDeserializer
       else if ( classType.equals( "buffer" ) )
       {
         byte[] value = processBuffer( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
+      else if ( classType.equals( "pstring" ) )
+      {
+        String value = processPstring( classObject.getAsJsonObject(), buf );
         return value;
       }
       else
@@ -113,21 +124,44 @@ public class PacketDeserializer
       else
       {
         JsonElement key = Main.PROTOCOL.getValues().get( objectType );
+        if ( key == null )
+        {
+          throw new UnsupportedOperationException( "Unknown type " + objectType );
+        }
         if ( key.isJsonPrimitive() )
         {
           return readNative( objectType, buf );
         }
         else
         {
-          throw new UnsupportedOperationException( "Unknown type " + objectType );
+          return packetDeserialize( key, packetTypes, Collections.emptyList(), buf );
         }
       }
     }
   }
 
+  private static Object processNbtSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    JsonObject fields = Main.PROTOCOL.getValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject();
+    Map< String, Object > thisOne = ancestors.get( ancestors.size() - 1 );
+    String type = (String) thisOne.get( "type" );
+
+    return packetDeserialize( fields.get( type ), packetTypes, ancestors, buf );
+  }
+
+  private static String processPstring( JsonObject json, ByteBuf buf )
+  {
+    int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
+
+    String s = buf.toString( buf.readerIndex(), count, StandardCharsets.UTF_8 );
+    buf.readerIndex( buf.readerIndex() + count );
+
+    return s;
+  }
+
   private static byte[] processBuffer( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
-    int count = (int) readNative( json.get( "countType" ).getAsString(), buf );
+    int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
     byte[] buffer = new byte[ count ];
     buf.readBytes( buffer );
     return buffer;
@@ -188,7 +222,7 @@ public class PacketDeserializer
   {
     List< Object > values = new ArrayList< Object >();
     String countType = json.get( "countType" ).getAsString();
-    int numElements = (int) readNative( countType, buf );
+    int numElements = ( (Number) readNative( countType, buf ) ).intValue();
     for ( int i = 0; i < numElements; i++ )
     {
       Object value = packetDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
@@ -199,8 +233,17 @@ public class PacketDeserializer
 
   private static String processMapper( final JsonObject json, final ByteBuf buf )
   {
-    int mapping = BufferUtils.readVarIntFromBuffer( buf );
-    String mappingS = "0x" + String.format( "%1$02X", mapping ).toLowerCase();
+    String type = json.get( "type" ).getAsString();
+    int mapping = ( (Number) readNative( type, buf ) ).intValue();
+    String mappingS;
+    if ( type.equals( "varint" ) )
+    {
+      mappingS = "0x" + String.format( "%1$02X", mapping ).toLowerCase();
+    }
+    else
+    {
+      mappingS = String.valueOf( mapping );
+    }
     JsonElement element = json.getAsJsonObject( "mappings" ).get( mappingS );
     if ( element != null )
     {
@@ -241,6 +284,10 @@ public class PacketDeserializer
     else if ( type.equals( "bool" ) )
     {
       return buf.readBoolean();
+    }
+    else if ( type.equals( "i16" ) )
+    {
+      return buf.readShort();
     }
     else if ( type.equals( "UUID" ) )
     {

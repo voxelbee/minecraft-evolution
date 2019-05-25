@@ -106,7 +106,12 @@
       },
       {
         "name": "value",
-        "type": ["nbtSwitch",{"type":"type"}]
+        "type": [
+          "nbtSwitch",
+          {
+            "type":"type"
+            }
+          ]
       }
     ]
   ]
