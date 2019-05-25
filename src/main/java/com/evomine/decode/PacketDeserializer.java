@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,8 @@ import java.util.UUID;
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -31,7 +34,7 @@ public class PacketDeserializer
         .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
         .getAsJsonObject( "types" );
     JsonElement packets = types.get( "packet" );
-    return (Map< String, Object >) packetDeserialize( packets, types, null, buf );
+    return (Map< String, Object >) packetDeserialize( packets, types, Collections.emptyList(), buf );
   }
 
   private static class KeyValue
@@ -48,10 +51,11 @@ public class PacketDeserializer
 
   private static Object packetDeserialize( final JsonElement object,
       final JsonObject packetTypes,
-      final Map< String, Object > parent,
+      final List< Map< String, Object > > ancestors,
       final ByteBuf buf ) throws JsonParseException
   {
     checkNotNull( object, "json" );
+    checkNotNull( ancestors, "ancestors" );
     if ( object.isJsonArray() )
     {
       checkState( object.getAsJsonArray().size() == 2, "Size of array" );
@@ -59,7 +63,7 @@ public class PacketDeserializer
       String classType = object.getAsJsonArray().get( 0 ).getAsString();
       if ( classType.equals( "container" ) )
       {
-        Map< String, Object > value = processContainer( classObject.getAsJsonArray(), packetTypes, buf );
+        Map< String, Object > value = processContainer( classObject.getAsJsonArray(), packetTypes, ancestors, buf );
         return value;
       }
       else if ( classType.equals( "mapper" ) )
@@ -69,12 +73,17 @@ public class PacketDeserializer
       }
       else if ( classType.equals( "switch" ) )
       {
-        Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, parent, buf );
+        Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
       else if ( classType.equals( "array" ) )
       {
-        List< Object > value = processArray( classObject.getAsJsonObject(), packetTypes, buf );
+        List< Object > value = processArray( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
+      else if ( classType.equals( "option" ) )
+      {
+        Object value = processOption( classObject, packetTypes, ancestors, buf );
         return value;
       }
       else
@@ -85,7 +94,7 @@ public class PacketDeserializer
     else if ( object.isJsonObject() )
     {
       String varName = object.getAsJsonObject().get( "name" ).getAsString();
-      Object value = packetDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, parent, buf );
+      Object value = packetDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, ancestors, buf );
       return new KeyValue( varName, value );
     }
     else
@@ -93,7 +102,7 @@ public class PacketDeserializer
       final String objectType = object.getAsString();
       if ( packetTypes.has( objectType ) )
       {
-        Object value = packetDeserialize( packetTypes.get( objectType ), packetTypes, parent, buf );
+        Object value = packetDeserialize( packetTypes.get( objectType ), packetTypes, ancestors, buf );
         return value;
       }
       else
@@ -111,43 +120,66 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processSwitch( JsonObject json, JsonObject packetTypes, Map< String, Object > parent, ByteBuf buf )
+  private static Object processOption( JsonElement json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    boolean present = buf.readBoolean();
+    if ( present )
+    {
+      return packetDeserialize( json, packetTypes, ancestors, buf );
+    }
+    else
+    {
+      return "void";
+    }
+  }
+
+  private static Object processSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
     String varNameToCompare = json.get( "compareTo" ).getAsString();
+    final Map< String, Object > thisOne;
     if ( varNameToCompare.startsWith( "../" ) )
     {
       varNameToCompare = varNameToCompare.substring( 3 );
+      thisOne = ancestors.get( ancestors.size() - 2 );
     }
-    if ( !parent.containsKey( varNameToCompare ) )
+    else
     {
-      throw new RuntimeException( "Failed to find key " + varNameToCompare );
+      thisOne = ancestors.get( ancestors.size() - 1 );
     }
-    String key = String.valueOf( parent.get( varNameToCompare ) );
+    String key = String.valueOf( thisOne.get( varNameToCompare ) );
     JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
-    return packetDeserialize( element, packetTypes, null, buf );
+    return packetDeserialize( element, packetTypes, ancestors, buf );
   }
 
-  private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes, final ByteBuf buf )
+  private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      final ByteBuf buf )
   {
     Map< String, Object > container = new LinkedHashMap< String, Object >();
+    Builder< Map< String, Object > > buildList = ImmutableList.builder();
+    for ( Map< String, Object > item : ancestors )
+    {
+      buildList.add( item );
+    }
+    buildList.add( container );
     for ( JsonElement element : json )
     {
-      KeyValue keyValue = (KeyValue) packetDeserialize( element, packetTypes, container, buf );
+      KeyValue keyValue = (KeyValue) packetDeserialize( element, packetTypes, buildList.build(), buf );
       container.put( keyValue.key, keyValue.value );
     }
     return container;
   }
 
-  private static List< Object > processArray( final JsonObject json, JsonObject packetTypes, final ByteBuf buf )
+  private static List< Object > processArray( final JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors,
+      final ByteBuf buf )
   {
     List< Object > values = new ArrayList< Object >();
     String countType = json.get( "countType" ).getAsString();
     int numElements = (int) readNative( countType, buf );
     for ( int i = 0; i < numElements; i++ )
     {
-      Map< String, Object > result = new LinkedHashMap< String, Object >();
-      packetDeserialize( json.get( "type" ), packetTypes, result, buf );
-      values.add( result );
+      Object value = packetDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
+      values.add( value );
     }
     return values;
   }

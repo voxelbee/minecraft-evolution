@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -118,21 +119,27 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  // @Test
+  @Test
   public void testDecodeBuffer11() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_11" );
     Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
     System.out.println( vars );
-    assertEquals( "unlock_recipes", vars.get( "name" ) );
+    assertEquals( "player_info", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 5, params.size() );
+    assertEquals( 2, params.size() );
     assertEquals( 0, params.get( "action" ) );
-    assertEquals( false, params.get( "craftingBookOpen" ) );
-    assertEquals( false, params.get( "filteringCraftable" ) );
-    assertEquals( Collections.emptyMap(), params.get( "recipes1" ) );
-    assertEquals( Collections.emptyMap(), params.get( "recipes2" ) );
+    List< Object > data = (List< Object >) params.get( "data" );
+    assertEquals( 1, data.size() );
+    Map< String, Object > playerInfo = (Map< String, Object >) data.get( 0 );
+    assertEquals( 6, playerInfo.size() );
+    assertEquals( UUID.fromString( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7" ), playerInfo.get( "UUID" ) );
+    assertEquals( "Player15", playerInfo.get( "name" ) );
+    assertEquals( Collections.emptyList(), playerInfo.get( "properties" ) );
+    assertEquals( 0, playerInfo.get( "gamemode" ) );
+    assertEquals( 0, playerInfo.get( "ping" ) );
+    assertEquals( "void", playerInfo.get( "displayName" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
