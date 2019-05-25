@@ -107,7 +107,6 @@ public class BufferDecoderTest
     ExpectedAndBuffer values = get( "buffers/buffer_10" );
     Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    System.out.println( vars );
     assertEquals( "unlock_recipes", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 5, params.size() );
@@ -125,7 +124,6 @@ public class BufferDecoderTest
     ExpectedAndBuffer values = get( "buffers/buffer_11" );
     Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    System.out.println( vars );
     assertEquals( "player_info", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 2, params.size() );
@@ -141,6 +139,23 @@ public class BufferDecoderTest
     assertEquals( 0, playerInfo.get( "ping" ) );
     assertEquals( "void", playerInfo.get( "displayName" ) );
     assertEquals( 0, values.buffer.readableBytes() );
+  }
+
+  @Test
+  public void testDecodeBuffer13() throws Exception
+  {
+    ExpectedAndBuffer values = get( "buffers/buffer_13" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, values.buffer.readableBytes() );
+    assertEquals( "map_chunk", vars.get( "name" ) );
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( 6, params.size() );
+    assertEquals( -9, params.get( "x" ) );
+    assertEquals( 3, params.get( "z" ) );
+    assertEquals( 63, params.get( "bitMap" ) );
+    assertEquals( 37244, ( (byte[]) params.get( "chunkData" ) ).length );
+    assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
   }
 
   // @Ignore("WIP")

@@ -86,9 +86,14 @@ public class PacketDeserializer
         Object value = processOption( classObject, packetTypes, ancestors, buf );
         return value;
       }
+      else if ( classType.equals( "buffer" ) )
+      {
+        byte[] value = processBuffer( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
       else
       {
-        throw new UnsupportedOperationException( "Unknown element " + classType );
+        throw new UnsupportedOperationException( "Unknown class " + classType );
       }
     }
     else if ( object.isJsonObject() )
@@ -118,6 +123,14 @@ public class PacketDeserializer
         }
       }
     }
+  }
+
+  private static byte[] processBuffer( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    int count = (int) readNative( json.get( "countType" ).getAsString(), buf );
+    byte[] buffer = new byte[ count ];
+    buf.readBytes( buffer );
+    return buffer;
   }
 
   private static Object processOption( JsonElement json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
