@@ -2,8 +2,11 @@ package com.evomine.decode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
@@ -41,6 +44,7 @@ public class PacketDeserializer
       final String varName,
       final ByteBuf buf ) throws JsonParseException
   {
+    checkNotNull( json, "json");
     checkNotNull( vars, "vars" );
     if ( json.isJsonArray() )
     {
@@ -61,13 +65,21 @@ public class PacketDeserializer
       else if ( objectType.equals( "switch" ) )
       {
         String varNameToCompare = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "compareTo" ).getAsString();
+        if ( varNameToCompare.startsWith( "../" ))
+        {
+          varNameToCompare = varNameToCompare.substring( 3 );
+        }
+        if (!vars.containsKey( varNameToCompare ))
+        {
+          throw new RuntimeException( "Failed to find key " + varNameToCompare );
+        }
         String key = String.valueOf( vars.get( varNameToCompare ) );
         JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject().get( key );
         packetDeserialize( element, all, vars, varName, buf );
       }
       else if ( objectType.equals( "array" ) )
       {
-        Object arrayValue = processArray( array, buf );
+        Object arrayValue = processArray( array, all, buf );
         vars.put( varName, arrayValue );
       }
       else
@@ -103,15 +115,18 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processArray( final JsonArray json, final ByteBuf buf )
+  private static Object processArray( final JsonArray json, JsonObject all, final ByteBuf buf )
   {
-    Map< String, Object > values = new LinkedHashMap< String, Object >();
-    int numElements = BufferUtils.readVarIntFromBuffer( buf );
-    if ( numElements == 0 )
+    List< Object > values = new ArrayList< Object >();
+    String countType = json.get(1).getAsJsonObject().get( "countType" ).getAsString();
+    int numElements = (int) readNative(countType, buf );
+    for( int i =0; i< numElements; i++)
     {
-      return values;
+      Map< String, Object> result = new LinkedHashMap<String, Object>();
+      packetDeserialize( json.get( 1 ).getAsJsonObject().get( "type" ), all, result, null, buf );
+      values.add( result );
     }
-    throw new UnsupportedOperationException("Array not implemented");
+    return values;
   }
 
   private static String processMapper( final JsonElement json, final ByteBuf buf )
@@ -158,6 +173,10 @@ public class PacketDeserializer
     else if( type.equals( "bool" ) )
     {
       return buf.readBoolean();
+    }
+    else if( type.equals( "UUID" ) )
+    {
+      return new UUID(buf.readLong(), buf.readLong());
     }
     else if( type.equals( "restBuffer" ) )
     {
