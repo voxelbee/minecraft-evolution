@@ -158,11 +158,10 @@ public class BufferDecoderTest
     assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
   }
 
-  // @Ignore("WIP")
-  // @Test
+  @Test
   public void testDecodeAll() throws Exception
   {
-    for ( int i = 0; i < 1000; i++ )
+    for ( int i = 0; i < 20; i++ )
     {
       if ( i == 5 )
       {
