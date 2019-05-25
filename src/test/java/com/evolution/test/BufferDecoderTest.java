@@ -83,6 +83,20 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
+  @Test
+  public void testDecodeBuffer3() throws Exception
+  {
+    ExpectedAndBuffer values = get( "buffers/buffer_3");
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    assertEquals( 2, vars.size() );
+    assertEquals( "success", vars.get( "name" ));
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( 2, params.size() );
+    assertEquals( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7", params.get( "uuid" ));
+    assertEquals( "Player15", params.get( "username" ));
+    assertEquals( 0, values.buffer.readableBytes() );
+  }
+
   private ExpectedAndBuffer get(final String filename ) throws IOException, URISyntaxException
   {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
