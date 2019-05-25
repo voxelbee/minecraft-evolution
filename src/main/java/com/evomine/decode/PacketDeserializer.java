@@ -29,9 +29,9 @@ public class PacketDeserializer
         .getAsJsonObject( "types" )
         .get( "packet" ),
         json.getAsJsonObject()
-            .getAsJsonObject( state.getAsString() )
-            .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
-            .getAsJsonObject( "types" ),
+        .getAsJsonObject( state.getAsString() )
+        .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
+        .getAsJsonObject( "types" ),
         vars, null, buf );
   }
 
@@ -64,6 +64,10 @@ public class PacketDeserializer
         String key = String.valueOf( vars.get( varNameToCompare ) );
         JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject().get( key );
         packetDeserialize( element, all, vars, varName, buf );
+      }
+      else
+      {
+        throw new UnsupportedOperationException("Unknown element " + objectType);
       }
     }
     else if ( json.isJsonObject() )
@@ -101,11 +105,11 @@ public class PacketDeserializer
     JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().getAsJsonObject( "mappings" ).get(mappingS);
     if (element != null)
     {
-        return element.getAsString();
-	}
+      return element.getAsString();
+    }
     else
     {
-		throw new UnsupportedOperationException( "Unknown packet type " + mappingS);
+      throw new UnsupportedOperationException( "Unknown packet type " + mappingS);
     }
   }
 
@@ -117,28 +121,32 @@ public class PacketDeserializer
     }
     else if( type.equals( "i32" ) )
     {
-    	return buf.readInt();
+      return buf.readInt();
+    }
+    else if( type.equals( "i64" ) )
+    {
+      return buf.readLong();
     }
     else if( type.equals( "u8" ) )
     {
-    	return buf.readUnsignedByte();
+      return buf.readUnsignedByte();
     }
     else if( type.equals( "i8" ) )
     {
-    	return buf.readByte();
+      return buf.readByte();
     }
     else if( type.equals( "f32" ) )
     {
-    	return buf.readFloat();
+      return buf.readFloat();
     }
     else if( type.equals( "bool" ) )
     {
-    	return buf.readBoolean();
+      return buf.readBoolean();
     }
     else if( type.equals( "restBuffer" ) )
     {
-    	int count = BufferUtils.readVarIntFromBuffer( buf );
-    	return buf.readBytes(count);
+      int count = BufferUtils.readVarIntFromBuffer( buf );
+      return buf.readBytes(count);
     }
     else if ( type.equals( "string" ) )
     {
