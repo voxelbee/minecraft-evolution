@@ -33,124 +33,126 @@ public class BufferDecoderTest
     final String className;
     final JsonObject expected;
     final ByteBuf buffer;
-    ExpectedAndBuffer( String className, JsonObject expected, ByteBuf buffer)
+
+    ExpectedAndBuffer( String className, JsonObject expected, ByteBuf buffer )
     {
-      this.className = checkNotNull(className);
-      this.expected = checkNotNull( expected);
-      this.buffer = checkNotNull(buffer);
+      this.className = checkNotNull( className );
+      this.expected = checkNotNull( expected );
+      this.buffer = checkNotNull( buffer );
     }
   }
 
   @Test
   public void testDecodeBuffer0() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_0");
-    assertEquals("net.minecraft.network.status.server.SPacketServerInfo", values.className );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className) );
+    ExpectedAndBuffer values = get( "buffers/buffer_0" );
+    assertEquals( "net.minecraft.network.status.server.SPacketServerInfo", values.className );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    assertEquals( "server_info", vars.get( "name" ));
+    assertEquals( "server_info", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 1, params.size() );
-    assertEquals( "{\"description\":{\"text\":\"A Minecraft Server\"},\"players\":{\"max\":20,\"online\":0},\"version\":{\"name\":\"1.12\",\"protocol\":335}}",
-        params.get( "response" ));
+    assertEquals(
+        "{\"description\":{\"text\":\"A Minecraft Server\"},\"players\":{\"max\":20,\"online\":0},\"version\":{\"name\":\"1.12\",\"protocol\":335}}",
+        params.get( "response" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
   @Test
   public void testDecodeBuffer1() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_1");
-    assertEquals("net.minecraft.network.status.server.SPacketPong", values.className );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    ExpectedAndBuffer values = get( "buffers/buffer_1" );
+    assertEquals( "net.minecraft.network.status.server.SPacketPong", values.className );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    assertEquals( "ping", vars.get( "name" ));
+    assertEquals( "ping", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 1, params.size() );
-    assertEquals( 343890327l, params.get( "time" ));
+    assertEquals( 343890327l, params.get( "time" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
   @Test
   public void testDecodeBuffer2() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_2");
-    assertEquals("net.minecraft.network.login.server.SPacketEnableCompression", values.className );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    ExpectedAndBuffer values = get( "buffers/buffer_2" );
+    assertEquals( "net.minecraft.network.login.server.SPacketEnableCompression", values.className );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    assertEquals( "compress", vars.get( "name" ));
+    assertEquals( "compress", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 1, params.size() );
-    assertEquals( 256, params.get( "threshold" ));
+    assertEquals( 256, params.get( "threshold" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
   @Test
   public void testDecodeBuffer3() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_3");
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    ExpectedAndBuffer values = get( "buffers/buffer_3" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    assertEquals( "success", vars.get( "name" ));
+    assertEquals( "success", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 2, params.size() );
-    assertEquals( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7", params.get( "uuid" ));
-    assertEquals( "Player15", params.get( "username" ));
+    assertEquals( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7", params.get( "uuid" ) );
+    assertEquals( "Player15", params.get( "username" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
   @Test
   public void testDecodeBuffer10() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_10");
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    ExpectedAndBuffer values = get( "buffers/buffer_10" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    System.out.println(vars);
-    assertEquals( "unlock_recipes", vars.get( "name" ));
+    System.out.println( vars );
+    assertEquals( "unlock_recipes", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 5, params.size() );
-    assertEquals( 0, params.get( "action" ));
-    assertEquals( false, params.get( "craftingBookOpen" ));
-    assertEquals( false, params.get( "filteringCraftable" ));
-    assertEquals( Collections.emptyList(), params.get( "recipes1" ));
-    assertEquals( Collections.emptyList(), params.get( "recipes2" ));
+    assertEquals( 0, params.get( "action" ) );
+    assertEquals( false, params.get( "craftingBookOpen" ) );
+    assertEquals( false, params.get( "filteringCraftable" ) );
+    assertEquals( Collections.emptyList(), params.get( "recipes1" ) );
+    assertEquals( Collections.emptyList(), params.get( "recipes2" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
   // @Test
   public void testDecodeBuffer11() throws Exception
   {
-    ExpectedAndBuffer values = get( "buffers/buffer_11");
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+    ExpectedAndBuffer values = get( "buffers/buffer_11" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
-    System.out.println(vars);
-    assertEquals( "unlock_recipes", vars.get( "name" ));
+    System.out.println( vars );
+    assertEquals( "unlock_recipes", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
     assertEquals( 5, params.size() );
-    assertEquals( 0, params.get( "action" ));
-    assertEquals( false, params.get( "craftingBookOpen" ));
-    assertEquals( false, params.get( "filteringCraftable" ));
-    assertEquals( Collections.emptyMap(), params.get( "recipes1" ));
-    assertEquals( Collections.emptyMap(), params.get( "recipes2" ));
+    assertEquals( 0, params.get( "action" ) );
+    assertEquals( false, params.get( "craftingBookOpen" ) );
+    assertEquals( false, params.get( "filteringCraftable" ) );
+    assertEquals( Collections.emptyMap(), params.get( "recipes1" ) );
+    assertEquals( Collections.emptyMap(), params.get( "recipes2" ) );
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  //@Ignore("WIP")
-  //@Test
+  // @Ignore("WIP")
+  // @Test
   public void testDecodeAll() throws Exception
   {
-    for(int i=0; i< 1000; i++)
+    for ( int i = 0; i < 1000; i++ )
     {
-      if ( i == 5)
+      if ( i == 5 )
       {
         continue;
       }
-      System.out.println(i);
-      ExpectedAndBuffer values = get( "buffers/buffer_" + i);
-      Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState(values.className)  );
+      System.out.println( i );
+      ExpectedAndBuffer values = get( "buffers/buffer_" + i );
+      Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     }
   }
 
-  private ExpectedAndBuffer get(final String filename ) throws IOException, URISyntaxException
+  private ExpectedAndBuffer get( final String filename ) throws IOException, URISyntaxException
   {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
     URI path = classloader.getResource( filename ).toURI();
@@ -158,29 +160,29 @@ public class BufferDecoderTest
     ByteBuf buf = Unpooled.wrappedBuffer( fileContent );
 
     final String expectedFilename = filename + "_decode";
-    List<String> lines = Files.readAllLines( Paths.get( classloader.getResource( expectedFilename ).toURI() ), StandardCharsets.UTF_8 );
-    JsonObject jsonObject = new JsonParser().parse(lines.get( 1 )).getAsJsonObject();
+    List< String > lines = Files.readAllLines( Paths.get( classloader.getResource( expectedFilename ).toURI() ), StandardCharsets.UTF_8 );
+    JsonObject jsonObject = new JsonParser().parse( lines.get( 1 ) ).getAsJsonObject();
 
-    return new ExpectedAndBuffer( lines.get( 0 ), jsonObject, buf);
+    return new ExpectedAndBuffer( lines.get( 0 ), jsonObject, buf );
   }
 
   private static EnumConnectionState getConnectionState( final String className )
   {
-    if ( className.contains( "login" ))
+    if ( className.contains( "login" ) )
     {
       return EnumConnectionState.LOGIN;
     }
-    else if ( className.contains( "status" ))
+    else if ( className.contains( "status" ) )
     {
       return EnumConnectionState.STATUS;
     }
-    else if ( className.contains( "play" ))
+    else if ( className.contains( "play" ) )
     {
       return EnumConnectionState.PLAY;
     }
     else
     {
-      throw new UnsupportedOperationException("Not found: " + className);
+      throw new UnsupportedOperationException( "Not found: " + className );
     }
   }
 }

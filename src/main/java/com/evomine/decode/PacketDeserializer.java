@@ -1,6 +1,7 @@
 package com.evomine.decode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,126 +22,148 @@ import io.netty.buffer.ByteBuf;
 public class PacketDeserializer
 {
 
-  public static void deserialize( final JsonElement json,
-      final Map< String, Object > vars,
+  public static Map< String, Object > deserializeRoot( final JsonElement json,
       final ByteBuf buf,
-      final EnumConnectionState state ) throws JsonParseException
+      final EnumConnectionState state )
   {
-    packetDeserialize( json.getAsJsonObject()
+    JsonObject types = json.getAsJsonObject()
         .getAsJsonObject( state.getAsString() )
         .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
-        .getAsJsonObject( "types" )
-        .get( "packet" ),
-        json.getAsJsonObject()
-        .getAsJsonObject( state.getAsString() )
-        .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
-        .getAsJsonObject( "types" ),
-        vars, null, buf );
+        .getAsJsonObject( "types" );
+    JsonElement packets = types.get( "packet" );
+    return (Map< String, Object >) packetDeserialize( packets, types, null, buf );
   }
 
-  private static void packetDeserialize( final JsonElement json,
-      final JsonObject all,
-      final Map< String, Object > vars,
-      final String varName,
+  private static class KeyValue
+  {
+    final String key;
+    final Object value;
+
+    KeyValue( final String key, final Object value )
+    {
+      this.key = checkNotNull( key, "key" );
+      this.value = checkNotNull( value, "value" );
+    }
+  }
+
+  private static Object packetDeserialize( final JsonElement object,
+      final JsonObject packetTypes,
+      final Map< String, Object > parent,
       final ByteBuf buf ) throws JsonParseException
   {
-    checkNotNull( json, "json");
-    checkNotNull( vars, "vars" );
-    if ( json.isJsonArray() )
+    checkNotNull( object, "json" );
+    if ( object.isJsonArray() )
     {
-      JsonArray array = json.getAsJsonArray();
-      String objectType = array.get( 0 ).getAsString();
-      if ( objectType.equals( "container" ) )
+      checkState( object.getAsJsonArray().size() == 2, "Size of array" );
+      JsonElement classObject = object.getAsJsonArray().get( 1 );
+      String classType = object.getAsJsonArray().get( 0 ).getAsString();
+      if ( classType.equals( "container" ) )
       {
-        for ( JsonElement element : array.get( 1 ).getAsJsonArray() )
-        {
-          packetDeserialize( element, all, vars, varName, buf );
-        }
+        Map< String, Object > value = processContainer( classObject.getAsJsonArray(), packetTypes, buf );
+        return value;
       }
-      else if ( objectType.equals( "mapper" ) )
+      else if ( classType.equals( "mapper" ) )
       {
-        String value = processMapper( json, buf );
-        vars.put( varName, value );
+        String value = processMapper( classObject.getAsJsonObject(), buf );
+        return value;
       }
-      else if ( objectType.equals( "switch" ) )
+      else if ( classType.equals( "switch" ) )
       {
-        String varNameToCompare = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "compareTo" ).getAsString();
-        if ( varNameToCompare.startsWith( "../" ))
-        {
-          varNameToCompare = varNameToCompare.substring( 3 );
-        }
-        if (!vars.containsKey( varNameToCompare ))
-        {
-          throw new RuntimeException( "Failed to find key " + varNameToCompare );
-        }
-        String key = String.valueOf( vars.get( varNameToCompare ) );
-        JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject().get( key );
-        packetDeserialize( element, all, vars, varName, buf );
+        Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, parent, buf );
+        return value;
       }
-      else if ( objectType.equals( "array" ) )
+      else if ( classType.equals( "array" ) )
       {
-        Object arrayValue = processArray( array, all, buf );
-        vars.put( varName, arrayValue );
+        List< Object > value = processArray( classObject.getAsJsonObject(), packetTypes, buf );
+        return value;
       }
       else
       {
-        throw new UnsupportedOperationException("Unknown element " + objectType);
+        throw new UnsupportedOperationException( "Unknown element " + classType );
       }
     }
-    else if ( json.isJsonObject() )
+    else if ( object.isJsonObject() )
     {
-      String newVarName = json.getAsJsonObject().get( "name" ).getAsString();
-      packetDeserialize( json.getAsJsonObject().get( "type" ), all, vars, newVarName, buf );
+      String varName = object.getAsJsonObject().get( "name" ).getAsString();
+      Object value = packetDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, parent, buf );
+      return new KeyValue( varName, value );
     }
     else
     {
-      if ( all.has( json.getAsString() ) )
+      final String objectType = object.getAsString();
+      if ( packetTypes.has( objectType ) )
       {
-        vars.put( varName, new LinkedHashMap< String, Object >() );
-        packetDeserialize( all.get( json.getAsString() ), all, (Map< String, Object >) vars.get( varName ), null, buf );
+        Object value = packetDeserialize( packetTypes.get( objectType ), packetTypes, parent, buf );
+        return value;
       }
       else
       {
-        String type = json.getAsString();
-        JsonElement key = Main.PROTOCOL.getValues().get( type );
+        JsonElement key = Main.PROTOCOL.getValues().get( objectType );
         if ( key.isJsonPrimitive() )
         {
-          vars.put( varName, readNative( type, buf ) );
+          return readNative( objectType, buf );
         }
         else
         {
-          throw new UnsupportedOperationException( "Unknown type " + type );
+          throw new UnsupportedOperationException( "Unknown type " + objectType );
         }
       }
     }
   }
 
-  private static Object processArray( final JsonArray json, JsonObject all, final ByteBuf buf )
+  private static Object processSwitch( JsonObject json, JsonObject packetTypes, Map< String, Object > parent, ByteBuf buf )
+  {
+    String varNameToCompare = json.get( "compareTo" ).getAsString();
+    if ( varNameToCompare.startsWith( "../" ) )
+    {
+      varNameToCompare = varNameToCompare.substring( 3 );
+    }
+    if ( !parent.containsKey( varNameToCompare ) )
+    {
+      throw new RuntimeException( "Failed to find key " + varNameToCompare );
+    }
+    String key = String.valueOf( parent.get( varNameToCompare ) );
+    JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
+    return packetDeserialize( element, packetTypes, null, buf );
+  }
+
+  private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes, final ByteBuf buf )
+  {
+    Map< String, Object > container = new LinkedHashMap< String, Object >();
+    for ( JsonElement element : json )
+    {
+      KeyValue keyValue = (KeyValue) packetDeserialize( element, packetTypes, container, buf );
+      container.put( keyValue.key, keyValue.value );
+    }
+    return container;
+  }
+
+  private static List< Object > processArray( final JsonObject json, JsonObject packetTypes, final ByteBuf buf )
   {
     List< Object > values = new ArrayList< Object >();
-    String countType = json.get(1).getAsJsonObject().get( "countType" ).getAsString();
-    int numElements = (int) readNative(countType, buf );
-    for( int i =0; i< numElements; i++)
+    String countType = json.get( "countType" ).getAsString();
+    int numElements = (int) readNative( countType, buf );
+    for ( int i = 0; i < numElements; i++ )
     {
-      Map< String, Object> result = new LinkedHashMap<String, Object>();
-      packetDeserialize( json.get( 1 ).getAsJsonObject().get( "type" ), all, result, null, buf );
+      Map< String, Object > result = new LinkedHashMap< String, Object >();
+      packetDeserialize( json.get( "type" ), packetTypes, result, buf );
       values.add( result );
     }
     return values;
   }
 
-  private static String processMapper( final JsonElement json, final ByteBuf buf )
+  private static String processMapper( final JsonObject json, final ByteBuf buf )
   {
     int mapping = BufferUtils.readVarIntFromBuffer( buf );
     String mappingS = "0x" + String.format( "%1$02X", mapping ).toLowerCase();
-    JsonElement element = json.getAsJsonArray().get( 1 ).getAsJsonObject().getAsJsonObject( "mappings" ).get(mappingS);
-    if (element != null)
+    JsonElement element = json.getAsJsonObject( "mappings" ).get( mappingS );
+    if ( element != null )
     {
       return element.getAsString();
     }
     else
     {
-      throw new UnsupportedOperationException( "Unknown packet type " + mappingS);
+      throw new UnsupportedOperationException( "Unknown packet type " + mappingS );
     }
   }
 
@@ -150,38 +173,38 @@ public class PacketDeserializer
     {
       return BufferUtils.readVarIntFromBuffer( buf );
     }
-    else if( type.equals( "i32" ) )
+    else if ( type.equals( "i32" ) )
     {
       return buf.readInt();
     }
-    else if( type.equals( "i64" ) )
+    else if ( type.equals( "i64" ) )
     {
       return buf.readLong();
     }
-    else if( type.equals( "u8" ) )
+    else if ( type.equals( "u8" ) )
     {
       return buf.readUnsignedByte();
     }
-    else if( type.equals( "i8" ) )
+    else if ( type.equals( "i8" ) )
     {
       return buf.readByte();
     }
-    else if( type.equals( "f32" ) )
+    else if ( type.equals( "f32" ) )
     {
       return buf.readFloat();
     }
-    else if( type.equals( "bool" ) )
+    else if ( type.equals( "bool" ) )
     {
       return buf.readBoolean();
     }
-    else if( type.equals( "UUID" ) )
+    else if ( type.equals( "UUID" ) )
     {
-      return new UUID(buf.readLong(), buf.readLong());
+      return new UUID( buf.readLong(), buf.readLong() );
     }
-    else if( type.equals( "restBuffer" ) )
+    else if ( type.equals( "restBuffer" ) )
     {
       int count = BufferUtils.readVarIntFromBuffer( buf );
-      return buf.readBytes(count);
+      return buf.readBytes( count );
     }
     else if ( type.equals( "string" ) )
     {
