@@ -377,6 +377,10 @@ public class PacketDeserializer
     {
       return buf.readShort();
     }
+    else if ( type.equals( "f64" ) )
+    {
+      return buf.readDouble();
+    }
     else if ( type.equals( "compound" ) )
     {
       return readCompound( buf );

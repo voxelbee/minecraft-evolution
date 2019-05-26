@@ -3,6 +3,7 @@ package com.evolution.test;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -192,15 +193,19 @@ public class BufferDecoderTest
   // @Test
   public void testDecodeAll() throws Exception
   {
-    for ( int i = 0; i < 76; i++ )
+    for ( int i = 5; i < 5000; i++ )
     {
-      if ( i == 5 || i == 72 || i == 21 || i == 37 || i == 58 )
+      byte[] fileContent = Files.readAllBytes( ( new File( "C:/tmp/buffers/buffer_" + i ) ).toPath() );
+      ByteBuf buf = Unpooled.wrappedBuffer( fileContent );
+
+      try
       {
-        continue;
+        Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
       }
-      System.out.println( i );
-      ExpectedAndBuffer values = get( "buffers/buffer_" + i );
-      Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
+      catch ( Exception e )
+      {
+        System.out.println( i + " : " + e.getMessage() );
+      }
     }
   }
 
@@ -212,7 +217,8 @@ public class BufferDecoderTest
     ByteBuf buf = Unpooled.wrappedBuffer( fileContent );
 
     final String expectedFilename = filename + "_decode";
-    List< String > lines = Files.readAllLines( Paths.get( classloader.getResource( expectedFilename ).toURI() ), StandardCharsets.UTF_8 );
+    List< String > lines = Files.readAllLines( Paths.get( classloader.getResource( expectedFilename ).toURI() ),
+        StandardCharsets.UTF_8 );
     JsonObject jsonObject = new JsonParser().parse( lines.get( 1 ) ).getAsJsonObject();
 
     return new ExpectedAndBuffer( lines.get( 0 ), jsonObject, buf );
