@@ -99,7 +99,7 @@ public class PacketDeserializer
       }
       else if ( classType.equals( "nbtSwitch" ) )
       {
-        String value = processNBTSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        Object value = processNBTSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
       else
@@ -143,11 +143,11 @@ public class PacketDeserializer
     }
   }
 
-  private static String processNBTSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processNBTSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
     JsonObject nbtSwitch = Main.PROTOCOL.getDefaultValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject();
     Object valueToCompare = ancestors.get( ancestors.size() - 1 ).get( json.get( "type" ).getAsString() );
-    return (String) processSwitch( nbtSwitch, packetTypes, ancestors, valueToCompare, buf );
+    return processSwitch( nbtSwitch, packetTypes, ancestors, valueToCompare, buf );
   }
 
   private static String processPstring( JsonObject json, ByteBuf buf )
@@ -225,6 +225,13 @@ public class PacketDeserializer
     {
       KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, buildList.build(), buf );
       container.put( keyValue.key, keyValue.value );
+      if ( keyValue.value instanceof String )
+      {
+        if ( ( (String) keyValue.value ).equals( "end" ) )
+        {
+          break;
+        }
+      }
     }
     return container;
   }
@@ -267,6 +274,15 @@ public class PacketDeserializer
     }
   }
 
+  private static Object readCompound( final ByteBuf buf )
+  {
+    List< Object > compound = new ArrayList< Object >();
+    JsonElement nbt = Main.PROTOCOL.getDefaultValues().get( "nbt" );
+    Object value = objectDeserialize( nbt, null, Collections.emptyList(), buf );
+    compound.add( value );
+    return compound;
+  }
+
   private static Object readNative( final String type, final ByteBuf buf )
   {
     if ( type.equals( "varint" ) )
@@ -300,6 +316,10 @@ public class PacketDeserializer
     else if ( type.equals( "i16" ) )
     {
       return buf.readShort();
+    }
+    else if ( type.equals( "compound" ) )
+    {
+      return readCompound( buf );
     }
     else if ( type.equals( "UUID" ) )
     {
