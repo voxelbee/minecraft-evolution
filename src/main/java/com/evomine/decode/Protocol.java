@@ -49,7 +49,11 @@ public class Protocol
     Main.LOGGER.log( EnumLoggerType.INFO, "Prococol version loaded: " + this.protocolVersion );
 
     JsonObject nbts = loadNbt().getAsJsonObject();
-    protocol.add( "nbtTypes", nbts );
+
+    for ( String key : nbts.keySet() )
+    {
+      protocol.get( "types" ).getAsJsonObject().add( key, nbts.get( key ) );
+    }
     Main.LOGGER.log( EnumLoggerType.INFO, "Loaded all data types for protocol" );
   }
 
@@ -95,11 +99,6 @@ public class Protocol
   public JsonObject getDefaultValues()
   {
     return this.protocol.getAsJsonObject( "types" );
-  }
-
-  public JsonObject getNbtValues()
-  {
-    return this.protocol.getAsJsonObject( "nbtTypes" );
   }
 
   public Map< String, Object > decodeBuffer( ByteBuf buf, EnumConnectionState state )

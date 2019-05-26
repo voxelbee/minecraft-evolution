@@ -43,7 +43,7 @@ public class BufferDecoderTest
     }
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer0() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_0" );
@@ -59,7 +59,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer1() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_1" );
@@ -73,7 +73,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer2() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_2" );
@@ -87,7 +87,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer3() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_3" );
@@ -101,7 +101,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer10() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_10" );
@@ -118,7 +118,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer11() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_11" );
@@ -141,7 +141,7 @@ public class BufferDecoderTest
     assertEquals( 0, values.buffer.readableBytes() );
   }
 
-  @Test
+  // @Test
   public void testDecodeBuffer13() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_13" );
@@ -158,7 +158,7 @@ public class BufferDecoderTest
     assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
   }
 
-  // @Test
+  @Test
   public void testDecodeBuffer21() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_21" );

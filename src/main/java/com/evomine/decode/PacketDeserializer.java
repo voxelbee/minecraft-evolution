@@ -50,7 +50,7 @@ public class PacketDeserializer
     }
   }
 
-  private static Object objectDeserialize( final JsonElement object,
+  public static Object objectDeserialize( final JsonElement object,
       final JsonObject packetTypes,
       final List< Map< String, Object > > ancestors,
       final ByteBuf buf ) throws JsonParseException
@@ -74,7 +74,7 @@ public class PacketDeserializer
       }
       else if ( classType.equals( "switch" ) )
       {
-        Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, null, buf );
         return value;
       }
       else if ( classType.equals( "array" ) )
@@ -95,6 +95,11 @@ public class PacketDeserializer
       else if ( classType.equals( "pstring" ) )
       {
         String value = processPstring( classObject.getAsJsonObject(), buf );
+        return value;
+      }
+      else if ( classType.equals( "nbtSwitch" ) )
+      {
+        String value = processNBTSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
       else
@@ -138,6 +143,13 @@ public class PacketDeserializer
     }
   }
 
+  private static String processNBTSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    JsonObject nbtSwitch = Main.PROTOCOL.getDefaultValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject();
+    Object valueToCompare = ancestors.get( ancestors.size() - 1 ).get( json.get( "type" ).getAsString() );
+    return (String) processSwitch( nbtSwitch, packetTypes, ancestors, valueToCompare, buf );
+  }
+
   private static String processPstring( JsonObject json, ByteBuf buf )
   {
     int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
@@ -168,22 +180,34 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processSwitch( JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      Object compareValue,
+      ByteBuf buf )
   {
-    String varNameToCompare = json.get( "compareTo" ).getAsString();
-    final Map< String, Object > thisOne;
-    if ( varNameToCompare.startsWith( "../" ) )
+    if ( compareValue == null )
     {
-      varNameToCompare = varNameToCompare.substring( 3 );
-      thisOne = ancestors.get( ancestors.size() - 2 );
+      String varNameToCompare = json.get( "compareTo" ).getAsString();
+      final Map< String, Object > thisOne;
+      if ( varNameToCompare.startsWith( "../" ) )
+      {
+        varNameToCompare = varNameToCompare.substring( 3 );
+        thisOne = ancestors.get( ancestors.size() - 2 );
+      }
+      else
+      {
+        thisOne = ancestors.get( ancestors.size() - 1 );
+      }
+      String key = String.valueOf( thisOne.get( varNameToCompare ) );
+      JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
+      return objectDeserialize( element, packetTypes, ancestors, buf );
     }
     else
     {
-      thisOne = ancestors.get( ancestors.size() - 1 );
+      JsonElement element = json.get( "fields" ).getAsJsonObject().get( String.valueOf( compareValue ) );
+      return objectDeserialize( element, packetTypes, ancestors, buf );
     }
-    String key = String.valueOf( thisOne.get( varNameToCompare ) );
-    JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
-    return objectDeserialize( element, packetTypes, ancestors, buf );
   }
 
   private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes,
@@ -285,10 +309,6 @@ public class PacketDeserializer
     {
       int count = BufferUtils.readVarIntFromBuffer( buf );
       return buf.readBytes( count );
-    }
-    else if ( type.equals( "string" ) )
-    {
-      return BufferUtils.readStringFromBuffer( buf, 10000 );
     }
     else
     {
