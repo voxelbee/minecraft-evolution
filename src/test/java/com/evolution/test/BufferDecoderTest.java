@@ -159,6 +159,16 @@ public class BufferDecoderTest
   }
 
   // @Test
+  public void testDecodeBuffer21() throws Exception
+  {
+    ExpectedAndBuffer values = get( "buffers/buffer_21" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
+    System.out.println( vars );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, values.buffer.readableBytes() );
+  }
+
+  // @Test
   public void testDecodeBuffer73() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_73" );

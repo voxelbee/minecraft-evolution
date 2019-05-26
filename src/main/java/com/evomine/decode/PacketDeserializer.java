@@ -26,7 +26,7 @@ import io.netty.buffer.ByteBuf;
 public class PacketDeserializer
 {
 
-  public static Map< String, Object > deserializeRoot( final JsonElement json,
+  public static Map< String, Object > packetDeserialize( final JsonElement json,
       final ByteBuf buf,
       final EnumConnectionState state )
   {
@@ -35,7 +35,7 @@ public class PacketDeserializer
         .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
         .getAsJsonObject( "types" );
     JsonElement packets = types.get( "packet" );
-    return (Map< String, Object >) packetDeserialize( packets, types, Collections.emptyList(), buf );
+    return (Map< String, Object >) objectDeserialize( packets, types, Collections.emptyList(), buf );
   }
 
   private static class KeyValue
@@ -50,7 +50,7 @@ public class PacketDeserializer
     }
   }
 
-  private static Object packetDeserialize( final JsonElement object,
+  private static Object objectDeserialize( final JsonElement object,
       final JsonObject packetTypes,
       final List< Map< String, Object > > ancestors,
       final ByteBuf buf ) throws JsonParseException
@@ -75,11 +75,6 @@ public class PacketDeserializer
       else if ( classType.equals( "switch" ) )
       {
         Object value = processSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
-        return value;
-      }
-      else if ( classType.equals( "nbtSwitch" ) )
-      {
-        Object value = processNbtSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
       else if ( classType.equals( "array" ) )
@@ -110,53 +105,46 @@ public class PacketDeserializer
     else if ( object.isJsonObject() )
     {
       String varName = object.getAsJsonObject().get( "name" ).getAsString();
-      Object value = packetDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, ancestors, buf );
+      Object value = objectDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, ancestors, buf );
       return new KeyValue( varName, value );
     }
     else
     {
       final String objectType = object.getAsString();
-      if ( packetTypes.has( objectType ) )
+      JsonElement key = Main.PROTOCOL.getDefaultValues().get( objectType );
+      if ( key != null )
       {
-        Object value = packetDeserialize( packetTypes.get( objectType ), packetTypes, ancestors, buf );
-        return value;
-      }
-      else
-      {
-        JsonElement key = Main.PROTOCOL.getValues().get( objectType );
-        if ( key == null )
-        {
-          throw new UnsupportedOperationException( "Unknown type " + objectType );
-        }
         if ( key.isJsonPrimitive() )
         {
           return readNative( objectType, buf );
         }
         else
         {
-          return packetDeserialize( key, packetTypes, Collections.emptyList(), buf );
+          return objectDeserialize( key, packetTypes, Collections.emptyList(), buf );
+        }
+      }
+      else
+      {
+        if ( packetTypes.has( objectType ) )
+        {
+          Object value = objectDeserialize( packetTypes.get( objectType ), packetTypes, ancestors, buf );
+          return value;
+        }
+        else
+        {
+          throw new UnsupportedOperationException( "Unknown type " + objectType );
         }
       }
     }
-  }
-
-  private static Object processNbtSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
-  {
-    JsonObject fields = Main.PROTOCOL.getValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject();
-    Map< String, Object > thisOne = ancestors.get( ancestors.size() - 1 );
-    String type = (String) thisOne.get( "type" );
-
-    return packetDeserialize( fields.get( type ), packetTypes, ancestors, buf );
   }
 
   private static String processPstring( JsonObject json, ByteBuf buf )
   {
     int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
 
-    String s = buf.toString( buf.readerIndex(), count, StandardCharsets.UTF_8 );
+    String value = buf.toString( buf.readerIndex(), count, StandardCharsets.UTF_8 );
     buf.readerIndex( buf.readerIndex() + count );
-
-    return s;
+    return value;
   }
 
   private static byte[] processBuffer( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
@@ -172,7 +160,7 @@ public class PacketDeserializer
     boolean present = buf.readBoolean();
     if ( present )
     {
-      return packetDeserialize( json, packetTypes, ancestors, buf );
+      return objectDeserialize( json, packetTypes, ancestors, buf );
     }
     else
     {
@@ -195,7 +183,7 @@ public class PacketDeserializer
     }
     String key = String.valueOf( thisOne.get( varNameToCompare ) );
     JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
-    return packetDeserialize( element, packetTypes, ancestors, buf );
+    return objectDeserialize( element, packetTypes, ancestors, buf );
   }
 
   private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes,
@@ -211,7 +199,7 @@ public class PacketDeserializer
     buildList.add( container );
     for ( JsonElement element : json )
     {
-      KeyValue keyValue = (KeyValue) packetDeserialize( element, packetTypes, buildList.build(), buf );
+      KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, buildList.build(), buf );
       container.put( keyValue.key, keyValue.value );
     }
     return container;
@@ -225,7 +213,7 @@ public class PacketDeserializer
     int numElements = ( (Number) readNative( countType, buf ) ).intValue();
     for ( int i = 0; i < numElements; i++ )
     {
-      Object value = packetDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
+      Object value = objectDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
       values.add( value );
     }
     return values;
