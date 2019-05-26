@@ -99,7 +99,17 @@ public class PacketDeserializer
       }
       else if ( classType.equals( "nbtSwitch" ) )
       {
-        Object value = processNBTSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        Object value = processNbtSwitch( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
+      else if ( classType.equals( "entityMetadataLoop" ) )
+      {
+        Object value = processEntityMetadataLoop( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
+        return value;
+      }
+      else if ( classType.equals( "entityMetadataItem" ) )
+      {
+        Object value = processEntityMetadataItem( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
       else
@@ -109,8 +119,25 @@ public class PacketDeserializer
     }
     else if ( object.isJsonObject() )
     {
-      String varName = object.getAsJsonObject().get( "name" ).getAsString();
-      Object value = objectDeserialize( object.getAsJsonObject().get( "type" ), packetTypes, ancestors, buf );
+      JsonObject jsonObject = object.getAsJsonObject();
+      final String varName;
+      if ( jsonObject.has( "name" ) )
+      {
+        varName = object.getAsJsonObject().get( "name" ).getAsString();
+      }
+      else if ( jsonObject.has( "anon" ) )
+      {
+        if ( !jsonObject.get( "anon" ).getAsBoolean() )
+        {
+          throw new IllegalArgumentException( "anon is present but is false" );
+        }
+        varName = "key";
+      }
+      else
+      {
+        throw new IllegalArgumentException( "Could not get name or anon for json object" );
+      }
+      Object value = objectDeserialize( jsonObject.get( "type" ), packetTypes, ancestors, buf );
       return new KeyValue( varName, value );
     }
     else
@@ -143,7 +170,31 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processNBTSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processEntityMetadataItem( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    JsonObject fields =
+        Main.PROTOCOL.getDefaultValues().getAsJsonArray( "entityMetadataItem" ).get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject();
+    Map< String, Object > thisOne = ancestors.get( ancestors.size() - 1 );
+    String type = String.valueOf( ( (Map< String, Object >) thisOne.get( "key" ) ).get( "type" ) );
+
+    return objectDeserialize( fields.get( type ), packetTypes, ancestors, buf );
+  }
+
+  private static Object processEntityMetadataLoop( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  {
+    checkState( json.size() == 2, "Size of json object" );
+    List< Object > objects = new ArrayList< Object >();
+    byte endVal = json.get( "endVal" ).getAsByte();
+    byte i;
+    while ( ( i = buf.readByte() ) != endVal )
+    {
+      Object value = objectDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
+      objects.add( value );
+    }
+    return objects;
+  }
+
+  private static Object processNbtSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
     JsonObject nbtSwitch = Main.PROTOCOL.getDefaultValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject();
     Object valueToCompare = ancestors.get( ancestors.size() - 1 ).get( json.get( "type" ).getAsString() );
@@ -221,9 +272,11 @@ public class PacketDeserializer
       buildList.add( item );
     }
     buildList.add( container );
+    List< Map< String, Object > > allAncestors = buildList.build();
     for ( JsonElement element : json )
     {
-      KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, buildList.build(), buf );
+      KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, allAncestors, buf );
+
       container.put( keyValue.key, keyValue.value );
       if ( keyValue.value instanceof String )
       {
