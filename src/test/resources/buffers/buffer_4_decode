@@ -1,2 +1,0 @@
-net.minecraft.network.play.server.SPacketJoinGame
-{"playerId":2511,"hardcoreMode":false,"gameType":"SURVIVAL","dimension":0,"difficulty":"EASY","maxPlayers":20,"worldType":{"worldTypeId":0,"worldType":"default","generatorVersion":1,"canBeCreated":true,"isWorldTypeVersioned":true,"hasNotificationData":false},"reducedDebugInfo":false}

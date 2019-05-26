@@ -1,2 +1,0 @@
-net.minecraft.network.play.server.SPacketHeldItemChange
-{"heldItemHotbarIndex":0}

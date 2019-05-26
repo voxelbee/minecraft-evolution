@@ -260,12 +260,28 @@ public class PacketDeserializer
       }
       String key = String.valueOf( thisOne.get( varNameToCompare ) );
       JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
-      return objectDeserialize( element, packetTypes, ancestors, buf );
+      if ( element == null )
+      {
+        JsonElement defaultVal = json.get( "default" );
+        return objectDeserialize( defaultVal, packetTypes, ancestors, buf );
+      }
+      else
+      {
+        return objectDeserialize( element, packetTypes, ancestors, buf );
+      }
     }
     else
     {
       JsonElement element = json.get( "fields" ).getAsJsonObject().get( String.valueOf( compareValue ) );
-      return objectDeserialize( element, packetTypes, ancestors, buf );
+      if ( element == null )
+      {
+        JsonElement defaultVal = json.get( "default" );
+        return objectDeserialize( defaultVal, packetTypes, ancestors, buf );
+      }
+      else
+      {
+        return objectDeserialize( element, packetTypes, ancestors, buf );
+      }
     }
   }
 
@@ -400,6 +416,10 @@ public class PacketDeserializer
       return buf.readDouble();
     }
     else if ( type.equals( "compound" ) )
+    {
+      return readCompound( buf );
+    }
+    else if ( type.equals( "optionalNbt" ) )
     {
       return readCompound( buf );
     }
