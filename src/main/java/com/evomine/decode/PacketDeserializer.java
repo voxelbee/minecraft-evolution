@@ -113,6 +113,11 @@ public class PacketDeserializer
         Object value = processEntityMetadataItem( classObject.getAsJsonObject(), packetTypes, ancestors, buf );
         return value;
       }
+      else if ( classType.equals( "bitfield" ) )
+      {
+        Object value = processBitfield( classObject.getAsJsonArray(), buf );
+        return value;
+      }
       else
       {
         throw new UnsupportedOperationException( "Unknown class " + classType );
@@ -171,7 +176,69 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processEntityMetadataItem( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processBitfield( JsonArray json,
+      ByteBuf buf )
+  {
+    Map< String, Object > fields = new LinkedHashMap< String, Object >();
+
+    int total = 0;
+    for ( int i = 0; i < json.size(); i++ )
+    {
+      total += json.get( i ).getAsJsonObject().get( "size" ).getAsInt();
+    }
+
+    if ( total == 64 )
+    {
+      long value = (long) readNative( ( "i" + total ), buf );
+
+      for ( int i = 0; i < json.size(); i++ )
+      {
+        JsonObject element = json.get( i ).getAsJsonObject();
+        String name = element.get( "name" ).getAsString();
+        int size = element.get( "size" ).getAsInt();
+        boolean signed = element.get( "signed" ).getAsBoolean();
+
+        long actual = value & ( 2 << size ) - 1;
+        if ( signed && ( actual > ( 2 << ( size - 1 ) ) ) )
+        {
+          actual = actual - ( 2 << size );
+        }
+        value = value >> size;
+        fields.put( name, actual );
+      }
+    }
+    else if ( total == 32 )
+    {
+      int value = (int) readNative( ( "i" + total ), buf );
+
+      for ( int i = 0; i < json.size(); i++ )
+      {
+        JsonObject element = json.get( i ).getAsJsonObject();
+        String name = element.get( "name" ).getAsString();
+        int size = element.get( "size" ).getAsInt();
+        boolean signed = element.get( "signed" ).getAsBoolean();
+
+        int actual = value & ( 2 << size ) - 1;
+        if ( signed && ( actual > ( 2 << ( size - 1 ) ) ) )
+        {
+          actual = actual - ( 2 << size );
+        }
+        value = value >> size;
+        fields.put( name, actual );
+      }
+    }
+    else
+    {
+      throw new RuntimeException( "Bitfield of size " + total + " not implemented" );
+    }
+
+    return fields;
+  }
+
+  private static Object processEntityMetadataItem( JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      ByteBuf buf )
   {
     if ( (short) ancestors.get( ancestors.size() - 1 ).get( "key" ) == 255 )
     {
@@ -182,7 +249,10 @@ public class PacketDeserializer
     return processSwitch( metadataItem, packetTypes, ancestors, valueToCompare, buf );
   }
 
-  private static Object processEntityMetadataLoop( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processEntityMetadataLoop( JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      ByteBuf buf )
   {
     checkState( json.size() == 2, "Size of json object" );
     List< Object > objects = new ArrayList< Object >();
@@ -202,7 +272,10 @@ public class PacketDeserializer
     return objects;
   }
 
-  private static Object processNbtSwitch( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processNbtSwitch( JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      ByteBuf buf )
   {
     JsonObject nbtSwitch = Main.PROTOCOL.getDefaultValues().getAsJsonArray( "nbtSwitch" ).get( 1 ).getAsJsonObject();
     Object valueToCompare = ancestors.get( ancestors.size() - 1 ).get( json.get( "type" ).getAsString() );
@@ -218,7 +291,10 @@ public class PacketDeserializer
     return value;
   }
 
-  private static byte[] processBuffer( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static byte[] processBuffer( JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      ByteBuf buf )
   {
     int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
     byte[] buffer = new byte[ count ];
@@ -226,7 +302,10 @@ public class PacketDeserializer
     return buffer;
   }
 
-  private static Object processOption( JsonElement json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
+  private static Object processOption( JsonElement json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
+      ByteBuf buf )
   {
     boolean present = buf.readBoolean();
     if ( present )
@@ -330,7 +409,9 @@ public class PacketDeserializer
     return container;
   }
 
-  private static List< Object > processArray( final JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors,
+  private static List< Object > processArray( final JsonObject json,
+      JsonObject packetTypes,
+      List< Map< String, Object > > ancestors,
       final ByteBuf buf )
   {
     List< Object > values = new ArrayList< Object >();

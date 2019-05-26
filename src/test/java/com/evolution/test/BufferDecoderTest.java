@@ -188,10 +188,32 @@ public class BufferDecoderTest
     assertEquals( (short) 0, params.get( "windowId" ) );
   }
 
+  @Test
+  public void testDecodeBitfield() throws Exception
+  {
+    ByteBuf buf = get( "buffers/buffer_599" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, buf.readableBytes() );
+    assertEquals( "spawn_position", vars.get( "name" ) );
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+  }
+
+  // @Test
+  public void testDecodeBuffer8073() throws Exception
+  {
+    ByteBuf buf = get( "buffers/buffer_8073" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, buf.readableBytes() );
+    assertEquals( "spawn_position", vars.get( "name" ) );
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+  }
+
   // @Test
   public void testDecodeAll() throws Exception
   {
-    for ( int i = 5; i < 5000; i++ )
+    for ( int i = 5; i < 10000; i++ )
     {
       byte[] fileContent = Files.readAllBytes( ( new File( "C:/tmp/buffers/buffer_" + i ) ).toPath() );
       ByteBuf buf = Unpooled.wrappedBuffer( fileContent );
