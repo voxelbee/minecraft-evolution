@@ -278,8 +278,15 @@ public class PacketDeserializer
   {
     List< Object > compound = new ArrayList< Object >();
     JsonElement nbt = Main.PROTOCOL.getDefaultValues().get( "nbt" );
-    Object value = objectDeserialize( nbt, null, Collections.emptyList(), buf );
-    compound.add( value );
+    while ( true )
+    {
+      Object value = objectDeserialize( nbt, null, Collections.emptyList(), buf );
+      compound.add( value );
+      if ( ( (String) ( (Map< String, Object >) value ).get( "type" ) ).equals( "end" ) )
+      {
+        break;
+      }
+    }
     return compound;
   }
 
