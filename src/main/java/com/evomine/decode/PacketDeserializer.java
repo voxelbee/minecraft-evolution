@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import com.evolution.main.Main;
@@ -131,7 +132,7 @@ public class PacketDeserializer
         {
           throw new IllegalArgumentException( "anon is present but is false" );
         }
-        varName = "key";
+        varName = "anonvoid";
       }
       else
       {
@@ -172,22 +173,29 @@ public class PacketDeserializer
 
   private static Object processEntityMetadataItem( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
-    JsonObject fields =
-        Main.PROTOCOL.getDefaultValues().getAsJsonArray( "entityMetadataItem" ).get( 1 ).getAsJsonObject().get( "fields" ).getAsJsonObject();
-    Map< String, Object > thisOne = ancestors.get( ancestors.size() - 1 );
-    String type = String.valueOf( ( (Map< String, Object >) thisOne.get( "key" ) ).get( "type" ) );
-
-    return objectDeserialize( fields.get( type ), packetTypes, ancestors, buf );
+    if ( (short) ancestors.get( ancestors.size() - 1 ).get( "key" ) == 255 )
+    {
+      return "void";
+    }
+    JsonObject metadataItem = Main.PROTOCOL.getDefaultValues().getAsJsonArray( "entityMetadataItem" ).get( 1 ).getAsJsonObject();
+    Object valueToCompare = ancestors.get( ancestors.size() - 1 ).get( json.get( "compareTo" ).getAsString() );
+    return processSwitch( metadataItem, packetTypes, ancestors, valueToCompare, buf );
   }
 
   private static Object processEntityMetadataLoop( JsonObject json, JsonObject packetTypes, List< Map< String, Object > > ancestors, ByteBuf buf )
   {
     checkState( json.size() == 2, "Size of json object" );
     List< Object > objects = new ArrayList< Object >();
-    byte endVal = json.get( "endVal" ).getAsByte();
-    byte i;
-    while ( ( i = buf.readByte() ) != endVal )
+    short endVal = json.get( "endVal" ).getAsShort();
+    while ( true )
     {
+      int index = buf.readerIndex();
+      short key = buf.readUnsignedByte();
+      if ( key == endVal )
+      {
+        break;
+      }
+      buf.readerIndex( index );
       Object value = objectDeserialize( json.get( "type" ), packetTypes, ancestors, buf );
       objects.add( value );
     }
@@ -261,7 +269,8 @@ public class PacketDeserializer
     }
   }
 
-  private static Map< String, Object > processContainer( final JsonArray json, JsonObject packetTypes,
+  private static Map< String, Object > processContainer( final JsonArray json,
+      JsonObject packetTypes,
       List< Map< String, Object > > ancestors,
       final ByteBuf buf )
   {
@@ -276,8 +285,17 @@ public class PacketDeserializer
     for ( JsonElement element : json )
     {
       KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, allAncestors, buf );
-
-      container.put( keyValue.key, keyValue.value );
+      if ( keyValue.key.equals( "anonvoid" ) )
+      {
+        for ( Entry< String, Object > map : ( (Map< String, Object >) keyValue.value ).entrySet() )
+        {
+          container.put( map.getKey(), map.getValue() );
+        }
+      }
+      else
+      {
+        container.put( keyValue.key, keyValue.value );
+      }
       if ( keyValue.value instanceof String )
       {
         if ( ( (String) keyValue.value ).equals( "end" ) )

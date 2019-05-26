@@ -44,7 +44,7 @@ public class BufferDecoderTest
     }
   }
 
-  // @Test
+  @Test
   public void testDecodeBuffer0() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_0" );
@@ -173,21 +173,16 @@ public class BufferDecoderTest
     assertEquals( 31, params.get( "bitMap" ) );
   }
 
-  // @Test
+  @Test
   public void testDecodeBuffer73() throws Exception
   {
     ExpectedAndBuffer values = get( "buffers/buffer_73" );
     Map< String, Object > vars = PROTOCOL.decodeBuffer( values.buffer, getConnectionState( values.className ) );
     assertEquals( 2, vars.size() );
     assertEquals( 0, values.buffer.readableBytes() );
-    assertEquals( "map_chunk", vars.get( "name" ) );
+    assertEquals( "entity_metadata", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 6, params.size() );
-    assertEquals( -9, params.get( "x" ) );
-    assertEquals( 3, params.get( "z" ) );
-    assertEquals( 63, params.get( "bitMap" ) );
-    assertEquals( 37244, ( (byte[]) params.get( "chunkData" ) ).length );
-    assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
+    assertEquals( 2225, params.get( "entityId" ) );
   }
 
   // @Test
