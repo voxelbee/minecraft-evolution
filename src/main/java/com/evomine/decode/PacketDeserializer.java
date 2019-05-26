@@ -303,9 +303,16 @@ public class PacketDeserializer
       KeyValue keyValue = (KeyValue) objectDeserialize( element, packetTypes, allAncestors, buf );
       if ( keyValue.key.equals( "anonvoid" ) )
       {
-        for ( Entry< String, Object > map : ( (Map< String, Object >) keyValue.value ).entrySet() )
+        if ( keyValue.value instanceof Map )
         {
-          container.put( map.getKey(), map.getValue() );
+          for ( Entry< String, Object > map : ( (Map< String, Object >) keyValue.value ).entrySet() )
+          {
+            container.put( map.getKey(), map.getValue() );
+          }
+        }
+        else if ( !( (String) keyValue.value ).equals( "void" ) )
+        {
+          continue;
         }
       }
       else
@@ -418,6 +425,10 @@ public class PacketDeserializer
     else if ( type.equals( "compound" ) )
     {
       return readCompound( buf );
+    }
+    else if ( type.equals( "void" ) )
+    {
+      return "void";
     }
     else if ( type.equals( "optionalNbt" ) )
     {

@@ -176,6 +176,18 @@ public class BufferDecoderTest
     assertEquals( 124, params.get( "entityId" ) );
   }
 
+  @Test
+  public void testDecodeVoidValue() throws Exception
+  {
+    ByteBuf buf = get( "buffers/buffer_603" );
+    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    assertEquals( 2, vars.size() );
+    assertEquals( 0, buf.readableBytes() );
+    assertEquals( "window_items", vars.get( "name" ) );
+    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( (short) 0, params.get( "windowId" ) );
+  }
+
   // @Test
   public void testDecodeAll() throws Exception
   {
