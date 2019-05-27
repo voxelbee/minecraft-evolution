@@ -28,7 +28,6 @@ public class NettyDecoder extends ByteToMessageDecoder
 
       Packet packet = Main.PROTOCOL.decodeBuffer( p_decode_2_, state );
       packet.state = state;
-      System.out.println( "Decoded: " + packet.name );
 
       if ( p_decode_2_.readableBytes() > 0 )
       {

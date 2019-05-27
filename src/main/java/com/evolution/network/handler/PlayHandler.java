@@ -1,5 +1,7 @@
 package com.evolution.network.handler;
 
+import com.evolution.main.EnumLoggerType;
+import com.evolution.main.Main;
 import com.evomine.decode.Packet;
 
 public class PlayHandler implements IPlayHandler
@@ -14,7 +16,7 @@ public class PlayHandler implements IPlayHandler
   @Override
   public void onDisconnect( String reason )
   {
-
+    Main.LOGGER.log( EnumLoggerType.WARN, "Disconnected from server: " + reason );
   }
 
   @Override
@@ -242,7 +244,7 @@ public class PlayHandler implements IPlayHandler
   @Override
   public void handleJoinGame( Packet packetIn )
   {
-    System.out.println( packetIn.params );
+
   }
 
   @Override

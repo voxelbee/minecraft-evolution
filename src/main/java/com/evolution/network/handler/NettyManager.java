@@ -9,6 +9,9 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.evolution.main.EnumLoggerType;
+import com.evolution.main.Main;
+import com.evolution.network.Connection;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.ITickable;
 import com.evolution.network.LazyLoadBase;
@@ -68,7 +71,12 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
   private boolean isEncrypted;
   private boolean disconnected;
 
-  public boolean running;
+  private Connection parent;
+
+  public NettyManager( Connection inParent )
+  {
+    this.parent = inParent;
+  }
 
   @Override
   public void channelActive( ChannelHandlerContext p_channelActive_1_ ) throws Exception
@@ -76,7 +84,6 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
     super.channelActive( p_channelActive_1_ );
     this.channel = p_channelActive_1_.channel();
     this.socketAddress = this.channel.remoteAddress();
-    this.running = true;
 
     try
     {
@@ -142,7 +149,6 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
    */
   public void setNetHandler( INetHandler handler )
   {
-    System.out.println( "Set listener of " + this + " to " + handler );
     this.packetListener = handler;
   }
 
@@ -303,12 +309,13 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
    */
   public void closeChannel( String message )
   {
-    this.running = false;
+    this.parent.isConnected = false;
+    Main.LOGGER.log( EnumLoggerType.WARN, "Disconnected..." );
     if ( this.channel.isOpen() )
     {
       this.channel.close().awaitUninterruptibly();
       this.terminationReason = message;
-      System.out.println( "Channel closed: " + message );
+      Main.LOGGER.log( EnumLoggerType.WARN, "Channel closed: " + message );
     }
   }
 
@@ -324,9 +331,9 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
   /**
    * Create a new NetworkManager from the server host and connect it to the server
    */
-  public static NettyManager createNetworkManagerAndConnect( InetAddress address, int serverPort, boolean useNativeTransport )
+  public static NettyManager createNetworkManagerAndConnect( InetAddress address, int serverPort, boolean useNativeTransport, Connection inParent )
   {
-    final NettyManager networkmanager = new NettyManager();
+    final NettyManager networkmanager = new NettyManager( inParent );
     Class< ? extends SocketChannel > oclass;
     LazyLoadBase< ? extends EventLoopGroup > lazyloadbase;
 

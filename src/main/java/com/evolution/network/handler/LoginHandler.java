@@ -1,5 +1,7 @@
 package com.evolution.network.handler;
 
+import com.evolution.main.EnumLoggerType;
+import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evomine.decode.Packet;
 
@@ -17,6 +19,7 @@ public class LoginHandler implements ILoginHandler
   {
     this.networkManager.setConnectionState( EnumConnectionState.PLAY );
     this.networkManager.setNetHandler( new PlayHandler( this.networkManager ) );
+    Main.LOGGER.log( EnumLoggerType.INFO, "Compleated login " + packetIn.params.get( "username" ) );
   }
 
   /**
@@ -25,7 +28,7 @@ public class LoginHandler implements ILoginHandler
   @Override
   public void onDisconnect( String reason )
   {
-    System.out.println( "Disconnected from server: " + reason );
+    Main.LOGGER.log( EnumLoggerType.WARN, "Disconnected from server: " + reason );
   }
 
   @Override
