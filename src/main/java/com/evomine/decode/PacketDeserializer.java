@@ -176,11 +176,35 @@ public class PacketDeserializer
     }
   }
 
-  private static Object processBitfield( JsonArray json,
+  private static < T extends Number > Map< String, Long > decodeBits(
+      JsonArray json,
+      T originalValue )
+  {
+    Map< String, Long > fields = new LinkedHashMap< String, Long >();
+
+    long value = originalValue.longValue();
+    for ( int i = 0; i < json.size(); i++ )
+    {
+      JsonObject element = json.get( i ).getAsJsonObject();
+      String name = element.get( "name" ).getAsString();
+      int size = element.get( "size" ).getAsInt();
+      boolean signed = element.get( "signed" ).getAsBoolean();
+
+      long shifted = 1 << size;
+      long actual = value & ( shifted - 1 );
+      if ( signed && ( actual > ( shifted >> 1 ) ) )
+      {
+        actual = actual - shifted;
+      }
+      value = value >> size;
+      fields.put( name, actual );
+    }
+    return fields;
+  }
+
+  static Object processBitfield( JsonArray json,
       ByteBuf buf )
   {
-    Map< String, Object > fields = new LinkedHashMap< String, Object >();
-
     int total = 0;
     for ( int i = 0; i < json.size(); i++ )
     {
@@ -190,49 +214,17 @@ public class PacketDeserializer
     if ( total == 64 )
     {
       long value = (long) readNative( ( "i" + total ), buf );
-
-      for ( int i = 0; i < json.size(); i++ )
-      {
-        JsonObject element = json.get( i ).getAsJsonObject();
-        String name = element.get( "name" ).getAsString();
-        int size = element.get( "size" ).getAsInt();
-        boolean signed = element.get( "signed" ).getAsBoolean();
-
-        long actual = value & ( 2 << size ) - 1;
-        if ( signed && ( actual > ( 2 << ( size - 1 ) ) ) )
-        {
-          actual = actual - ( 2 << size );
-        }
-        value = value >> size;
-        fields.put( name, actual );
-      }
+      return decodeBits( json, value );
     }
     else if ( total == 32 )
     {
       int value = (int) readNative( ( "i" + total ), buf );
-
-      for ( int i = 0; i < json.size(); i++ )
-      {
-        JsonObject element = json.get( i ).getAsJsonObject();
-        String name = element.get( "name" ).getAsString();
-        int size = element.get( "size" ).getAsInt();
-        boolean signed = element.get( "signed" ).getAsBoolean();
-
-        int actual = value & ( 2 << size ) - 1;
-        if ( signed && ( actual > ( 2 << ( size - 1 ) ) ) )
-        {
-          actual = actual - ( 2 << size );
-        }
-        value = value >> size;
-        fields.put( name, actual );
-      }
+      return decodeBits( json, value );
     }
     else
     {
       throw new RuntimeException( "Bitfield of size " + total + " not implemented" );
     }
-
-    return fields;
   }
 
   private static Object processEntityMetadataItem( JsonObject json,
