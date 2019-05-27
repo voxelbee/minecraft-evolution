@@ -20,9 +20,9 @@ public class BitFieldTest
   public void testBitfieldLongSigned()
   {
     final String jsonLine =
-        "[{\"name\":\"x\",\"size\":26,\"signed\":true},"
+        "[{\"name\":\"z\",\"size\":26,\"signed\":true},"
             + "{\"name\":\"y\",\"size\":12,\"signed\":true},"
-            + "{\"name\":\"z\",\"size\":26,\"signed\":true}]";
+            + "{\"name\":\"x\",\"size\":26,\"signed\":true}]";
     final JsonArray bitfield = new JsonParser().parse( jsonLine ).getAsJsonArray();
     ByteBuf buf = Unpooled.copiedBuffer( new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 } );
     Object result = PacketDeserializer.processBitfield( bitfield, buf );
@@ -37,10 +37,10 @@ public class BitFieldTest
   public void testBitfieldIntUnsigned1()
   {
     final String jsonLine =
-        "[{\"name\":\"a\",\"size\":1,\"signed\":false},\n"
-            + "{\"name\":\"b\",\"size\":2,\"signed\":false},\n"
+        "[{\"name\":\"d\",\"size\":3,\"signed\":false},"
             + "{\"name\":\"c\",\"size\":26,\"signed\":true},\n"
-            + "{\"name\":\"d\",\"size\":3,\"signed\":false}]";
+            + "{\"name\":\"b\",\"size\":2,\"signed\":false},\n"
+            + "{\"name\":\"a\",\"size\":1,\"signed\":false}]";
     ByteBuffer bbuf = ByteBuffer.allocate( 4 );
     final int bits = Integer.parseInt( "01101000100010001000100100000111", 2 );
     bbuf.putInt( bits );
@@ -61,8 +61,8 @@ public class BitFieldTest
   public void testBitfieldIntUnsigned2()
   {
     final String jsonLine =
-        "[{\"name\":\"a\",\"size\":1,\"signed\":false},\n"
-            + "{\"name\":\"b\",\"size\":31,\"signed\":false}]";
+        "[{\"name\":\"b\",\"size\":31,\"signed\":false},"
+            + "{\"name\":\"a\",\"size\":1,\"signed\":false}]";
     ByteBuffer bbuf = ByteBuffer.allocate( 4 );
     final int bits = Integer.parseInt( "011", 2 );
     bbuf.putInt( bits );
@@ -81,8 +81,8 @@ public class BitFieldTest
   public void testBitfieldIntSigned2()
   {
     final String jsonLine =
-        "[{\"name\":\"a\",\"size\":2,\"signed\":true},\n"
-            + "{\"name\":\"b\",\"size\":30,\"signed\":false}]";
+        "[{\"name\":\"b\",\"size\":30,\"signed\":false},"
+            + "{\"name\":\"a\",\"size\":2,\"signed\":true}]";
     final JsonArray bitfield = new JsonParser().parse( jsonLine ).getAsJsonArray();
     ByteBuffer bbuf = ByteBuffer.allocate( 4 );
 

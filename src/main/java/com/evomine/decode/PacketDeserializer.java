@@ -184,7 +184,7 @@ public class PacketDeserializer
     Map< String, Long > fields = new LinkedHashMap< String, Long >();
 
     long value = originalValue.longValue();
-    for ( int i = 0; i < json.size(); i++ )
+    for ( int i = json.size() - 1; i >= 0; i-- )
     {
       JsonObject element = json.get( i ).getAsJsonObject();
       String name = element.get( "name" ).getAsString();
@@ -521,8 +521,7 @@ public class PacketDeserializer
     }
     else if ( type.equals( "optionalNbt" ) )
     {
-      JsonElement nbt = Main.PROTOCOL.getDefaultValues().get( "nbt" );
-      return objectDeserialize( nbt, null, Collections.emptyList(), buf );
+      return readCompound( buf );
     }
     else if ( type.equals( "UUID" ) )
     {
