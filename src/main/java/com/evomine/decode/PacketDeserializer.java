@@ -507,7 +507,8 @@ public class PacketDeserializer
     }
     else if ( type.equals( "optionalNbt" ) )
     {
-      return readCompound( buf );
+      JsonElement nbt = Main.PROTOCOL.getDefaultValues().get( "nbt" );
+      return objectDeserialize( nbt, null, Collections.emptyList(), buf );
     }
     else if ( type.equals( "UUID" ) )
     {
