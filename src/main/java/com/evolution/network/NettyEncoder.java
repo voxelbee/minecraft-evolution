@@ -1,45 +1,41 @@
 package com.evolution.network;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToByteEncoder;
-
 import java.io.IOException;
 
 import com.evolution.main.Main;
 import com.evolution.network.handler.NettyManager;
-import com.evomine.decode.PacketLayout;
-import com.evomine.decode.BufferUtils;
+import com.evomine.decode.Packet;
 
-public class NettyEncoder extends MessageToByteEncoder<PacketLayout>
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.MessageToByteEncoder;
+
+public class NettyEncoder extends MessageToByteEncoder< Packet >
 {
-    public NettyEncoder()
+  public NettyEncoder()
+  {
+
+  }
+
+  @Override
+  protected void encode( ChannelHandlerContext p_encode_1_, Packet p_encode_2_, ByteBuf p_encode_3_ ) throws IOException, Exception
+  {
+    EnumConnectionState enumconnectionstate = p_encode_1_.channel().attr( NettyManager.PROTOCOL_ATTRIBUTE_KEY ).get();
+
+    if ( enumconnectionstate == null )
     {
-        
+      throw new RuntimeException( "ConnectionProtocol unknown: " + p_encode_2_.toString() );
     }
-
-    protected void encode(ChannelHandlerContext p_encode_1_, PacketLayout p_encode_2_, ByteBuf p_encode_3_) throws IOException, Exception
+    else
     {
-        EnumConnectionState enumconnectionstate = (EnumConnectionState)p_encode_1_.channel().attr(NettyManager.PROTOCOL_ATTRIBUTE_KEY).get();
-
-        if (enumconnectionstate == null)
-        {
-            throw new RuntimeException("ConnectionProtocol unknown: " + p_encode_2_.toString());
-        }
-        else
-        {
-            Integer integer = p_encode_2_.id;
-
-	    	BufferUtils.writeVarIntToBuffer(p_encode_3_, integer.intValue());
-	
-	        try
-	        {
-	            p_encode_2_.writePacketData(p_encode_3_);
-	        }
-	        catch (Throwable throwable)
-	        {
-	        	throwable.printStackTrace(System.out);
-	        }
-        }
+      try
+      {
+        Main.PROTOCOL.encodeBuffer( p_encode_3_, p_encode_2_ );
+      }
+      catch ( Throwable throwable )
+      {
+        throwable.printStackTrace( System.out );
+      }
     }
+  }
 }

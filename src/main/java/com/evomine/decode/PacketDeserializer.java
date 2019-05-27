@@ -52,7 +52,7 @@ public class PacketDeserializer
     }
   }
 
-  public static Object objectDeserialize( final JsonElement object,
+  private static Object objectDeserialize( final JsonElement object,
       final JsonObject packetTypes,
       final List< Map< String, Object > > ancestors,
       final ByteBuf buf ) throws JsonParseException

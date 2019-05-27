@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
+import com.evomine.decode.Packet;
 import com.evomine.decode.Protocol;
 
 import io.netty.buffer.ByteBuf;
@@ -30,14 +31,12 @@ public class BufferDecoderTest
   public void testDecodeBuffer0() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_0" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.STATUS );
-    assertEquals( 2, vars.size() );
-    assertEquals( "server_info", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 1, params.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.STATUS );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "server_info", packet.name );
     assertEquals(
         "{\"description\":{\"text\":\"A Minecraft Server\"},\"players\":{\"max\":20,\"online\":0},\"version\":{\"name\":\"1.12\",\"protocol\":335}}",
-        params.get( "response" ) );
+        vars.get( "response" ) );
     assertEquals( 0, buf.readableBytes() );
   }
 
@@ -45,12 +44,10 @@ public class BufferDecoderTest
   public void testDecodeBuffer1() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_1" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.STATUS );
-    assertEquals( 2, vars.size() );
-    assertEquals( "ping", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 1, params.size() );
-    assertEquals( 343890327l, params.get( "time" ) );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.STATUS );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "ping", packet.name );
+    assertEquals( 343890327l, vars.get( "time" ) );
     assertEquals( 0, buf.readableBytes() );
   }
 
@@ -58,12 +55,11 @@ public class BufferDecoderTest
   public void testDecodeBuffer2() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_2" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.LOGIN );
-    assertEquals( 2, vars.size() );
-    assertEquals( "compress", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 1, params.size() );
-    assertEquals( 256, params.get( "threshold" ) );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.LOGIN );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "compress", packet.name );
+    assertEquals( 1, vars.size() );
+    assertEquals( 256, vars.get( "threshold" ) );
     assertEquals( 0, buf.readableBytes() );
   }
 
@@ -71,13 +67,12 @@ public class BufferDecoderTest
   public void testDecodeBuffer3() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_3" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.LOGIN );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.LOGIN );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "success", packet.name );
     assertEquals( 2, vars.size() );
-    assertEquals( "success", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 2, params.size() );
-    assertEquals( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7", params.get( "uuid" ) );
-    assertEquals( "Player15", params.get( "username" ) );
+    assertEquals( "7beaed24-0a62-3f97-b968-4d6f3b3f19c7", vars.get( "uuid" ) );
+    assertEquals( "Player15", vars.get( "username" ) );
     assertEquals( 0, buf.readableBytes() );
   }
 
@@ -85,16 +80,15 @@ public class BufferDecoderTest
   public void testDecodeBuffer10() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_10" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
-    assertEquals( "unlock_recipes", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 5, params.size() );
-    assertEquals( 0, params.get( "action" ) );
-    assertEquals( false, params.get( "craftingBookOpen" ) );
-    assertEquals( false, params.get( "filteringCraftable" ) );
-    assertEquals( Collections.emptyList(), params.get( "recipes1" ) );
-    assertEquals( Collections.emptyList(), params.get( "recipes2" ) );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "unlock_recipes", packet.name );
+    assertEquals( 5, vars.size() );
+    assertEquals( 0, vars.get( "action" ) );
+    assertEquals( false, vars.get( "craftingBookOpen" ) );
+    assertEquals( false, vars.get( "filteringCraftable" ) );
+    assertEquals( Collections.emptyList(), vars.get( "recipes1" ) );
+    assertEquals( Collections.emptyList(), vars.get( "recipes2" ) );
     assertEquals( 0, buf.readableBytes() );
   }
 
@@ -107,13 +101,12 @@ public class BufferDecoderTest
   public void testDecodeBackwardsSwitchRef() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_11" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
+    assertEquals( "player_info", packet.name );
     assertEquals( 2, vars.size() );
-    assertEquals( "player_info", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 2, params.size() );
-    assertEquals( 0, params.get( "action" ) );
-    List< Object > data = (List< Object >) params.get( "data" );
+    assertEquals( 0, vars.get( "action" ) );
+    List< Object > data = (List< Object >) vars.get( "data" );
     assertEquals( 1, data.size() );
     Map< String, Object > playerInfo = (Map< String, Object >) data.get( 0 );
     assertEquals( 6, playerInfo.size() );
@@ -130,80 +123,73 @@ public class BufferDecoderTest
   public void testDecodeBuffer13() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_13" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "map_chunk", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 6, params.size() );
-    assertEquals( -9, params.get( "x" ) );
-    assertEquals( 3, params.get( "z" ) );
-    assertEquals( 63, params.get( "bitMap" ) );
-    assertEquals( 37244, ( (byte[]) params.get( "chunkData" ) ).length );
-    assertEquals( Collections.emptyList(), params.get( "blockEntities" ) );
+    assertEquals( "map_chunk", packet.name );
+    assertEquals( 6, vars.size() );
+    assertEquals( -9, vars.get( "x" ) );
+    assertEquals( 3, vars.get( "z" ) );
+    assertEquals( 63, vars.get( "bitMap" ) );
+    assertEquals( 37244, ( (byte[]) vars.get( "chunkData" ) ).length );
+    assertEquals( Collections.emptyList(), vars.get( "blockEntities" ) );
   }
 
   @Test
   public void testDecodeNbt() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_21" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "map_chunk", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( -9, params.get( "x" ) );
-    assertEquals( 11, params.get( "z" ) );
-    assertEquals( 31, params.get( "bitMap" ) );
+    assertEquals( "map_chunk", packet.name );
+    assertEquals( -9, vars.get( "x" ) );
+    assertEquals( 11, vars.get( "z" ) );
+    assertEquals( 31, vars.get( "bitMap" ) );
   }
 
   @Test
   public void testDecodeEntityMetadata() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_73" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "entity_metadata", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 2225, params.get( "entityId" ) );
+    assertEquals( "entity_metadata", packet.name );
+    assertEquals( 2225, vars.get( "entityId" ) );
   }
 
   @Test
   public void testDecodeSwitchDefault() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_150" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "entity_equipment", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 124, params.get( "entityId" ) );
+    assertEquals( "entity_equipment", packet.name );
+    assertEquals( 124, vars.get( "entityId" ) );
   }
 
   @Test
   public void testDecodeVoidValue() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_603" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "window_items", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( (short) 0, params.get( "windowId" ) );
+    assertEquals( "window_items", packet.name );
+    assertEquals( (short) 0, vars.get( "windowId" ) );
   }
 
   @Test
   public void testDecodeBitfield() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_599" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "spawn_position", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
-    assertEquals( 1, params.size() );
-    Map< String, Object > location = (Map< String, Object >) params.get( "location" );
+    assertEquals( "spawn_position", packet.name );
+    Map< String, Object > location = (Map< String, Object >) vars.get( "location" );
     assertEquals( 3, location.size() );
     assertEquals( -12l, location.get( "x" ) );
     assertEquals( 64l, location.get( "y" ) );
@@ -214,11 +200,10 @@ public class BufferDecoderTest
   public void testDecodeBuffer8073() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_8073" );
-    Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
-    assertEquals( 2, vars.size() );
+    Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+    Map< String, Object > vars = packet.params;
     assertEquals( 0, buf.readableBytes() );
-    assertEquals( "advancements", vars.get( "name" ) );
-    Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( "advancements", packet.name );
   }
 
   // @Test
@@ -231,7 +216,8 @@ public class BufferDecoderTest
 
       try
       {
-        Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+        Packet packet = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
+        Map< String, Object > vars = packet.params;
       }
       catch ( Exception e )
       {

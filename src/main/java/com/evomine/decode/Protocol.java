@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 import com.evolution.main.EnumLoggerType;
 import com.evolution.main.Main;
@@ -101,8 +100,14 @@ public class Protocol
     return this.protocol.getAsJsonObject( "types" );
   }
 
-  public Map< String, Object > decodeBuffer( ByteBuf buf, EnumConnectionState state )
+  public Packet decodeBuffer( ByteBuf buf, EnumConnectionState state )
   {
-    return PacketDeserializer.packetDeserialize( protocol, buf, state );
+    Packet packet = new Packet( PacketDeserializer.packetDeserialize( protocol, buf, state ) );
+    return packet;
+  }
+
+  public void encodeBuffer( ByteBuf buf, Packet packet )
+  {
+    PacketSerializer.packetSerialize( protocol, buf, packet );
   }
 }

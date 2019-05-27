@@ -1,14 +1,14 @@
 package com.evolution.main;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.net.InetAddress;
 
+import com.evolution.network.EnumConnectionState;
+import com.evolution.network.handler.LoginHandler;
+import com.evolution.network.handler.NettyManager;
+import com.evomine.decode.Packet;
 import com.evomine.decode.Protocol;
 import com.google.gson.Gson;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 
 public class Main
 {
@@ -19,40 +19,32 @@ public class Main
 
   public static void main( String[] args ) throws IOException
   {
-    byte[] fileContent = Files.readAllBytes( ( new File( "C:/tmp/buffers/buffer1" ) ).toPath() );
-    ByteBuf buf = Unpooled.wrappedBuffer( fileContent );
+    String ip = "localhost";
+    int port = 25565;
+    NettyManager manager = NettyManager.createNetworkManagerAndConnect( InetAddress.getByName( ip ), port, true );
+    manager.setNetHandler( new LoginHandler( manager ) );
 
-    // LinkedHashMap<String, Object> vars = new LinkedHashMap<String, Object>();
-    // PROTOCOL.decodeBuffer(buf, vars, EnumConnectionState.LOGIN);
+    Packet C00Handshake = new Packet( "set_protocol", EnumConnectionState.HANDSHAKING );
+    C00Handshake.params.put( "protocolVersion", PROTOCOL.getProtocol() );
+    C00Handshake.params.put( "serverHost", ip );
+    C00Handshake.params.put( "serverPort", (short) port );
+    C00Handshake.params.put( "nextState", EnumConnectionState.LOGIN.getId() );
+    manager.sendPacket( C00Handshake );
 
-    // String ip = "localhost";
-    // int port = 25565;
-    // NettyManager manager = NettyManager.createNetworkManagerAndConnect(InetAddress.getByName(ip), port, true);
-    // manager.setNetHandler(new LoginHandler(manager));
+    Packet CLogin = new Packet( "login_start", EnumConnectionState.LOGIN );
+    CLogin.params.put( "username", "jim" );
+    manager.sendPacket( CLogin );
 
-    // PacketLayout C00Handshake = PROTOCOL.getPacketFromName(EnumConnectionState.HANDSHAKING, "packet_set_protocol",
-    // EnumPacketDirection.SERVERBOUND).createReadWritePacket();
-    // C00Handshake.variables.put("protocolVersion", PROTOCOL.getProtocol());
-    // C00Handshake.variables.put("serverHost", ip);
-    // C00Handshake.variables.put("serverPort", (short)port);
-    // C00Handshake.variables.put("nextState", EnumConnectionState.LOGIN.getId());
-    // manager.sendPacket(C00Handshake);
-
-    // PacketLayout CLogin = PROTOCOL.getPacketFromName(EnumConnectionState.LOGIN, "packet_login_start",
-    // EnumPacketDirection.SERVERBOUND).createReadWritePacket();
-    // CLogin.variables.put("username", "jim");
-    // manager.sendPacket(CLogin);
-
-    // while(true)
-    // {
-    // try
-    // {
-    // Thread.sleep(100);
-    // }
-    // catch (InterruptedException e)
-    // {
-    // e.printStackTrace();
-    // }
-    // }
+    while ( true )
+    {
+      try
+      {
+        Thread.sleep( 100 );
+      }
+      catch ( InterruptedException e )
+      {
+        e.printStackTrace();
+      }
+    }
   }
 }

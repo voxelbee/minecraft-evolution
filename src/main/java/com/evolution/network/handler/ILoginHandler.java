@@ -1,12 +1,12 @@
 package com.evolution.network.handler;
 
-import com.evomine.decode.PacketLayout;
+import com.evomine.decode.Packet;
 
 public interface ILoginHandler extends INetHandler
 {
-    void handleLoginSuccess(PacketLayout packetIn);
+  void handleLoginSuccess( Packet packetIn );
 
-    void handleDisconnect(PacketLayout packetIn);
+  void handleDisconnect( Packet packetIn );
 
-    void handleEnableCompression(PacketLayout packetIn);
+  void handleEnableCompression( Packet packetIn );
 }
