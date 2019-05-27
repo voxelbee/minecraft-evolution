@@ -68,12 +68,15 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
   private boolean isEncrypted;
   private boolean disconnected;
 
+  public boolean running;
+
   @Override
   public void channelActive( ChannelHandlerContext p_channelActive_1_ ) throws Exception
   {
     super.channelActive( p_channelActive_1_ );
     this.channel = p_channelActive_1_.channel();
     this.socketAddress = this.channel.remoteAddress();
+    this.running = true;
 
     try
     {
@@ -300,6 +303,7 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
    */
   public void closeChannel( String message )
   {
+    this.running = false;
     if ( this.channel.isOpen() )
     {
       this.channel.close().awaitUninterruptibly();

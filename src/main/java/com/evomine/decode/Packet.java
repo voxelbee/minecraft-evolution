@@ -29,21 +29,25 @@ public class Packet
 
   public void processPacket( INetHandler handler )
   {
-    if ( name.equals( "packet_compress" ) )
+    if ( name.equals( "compress" ) )
     {
       ( (ILoginHandler) handler ).handleEnableCompression( this );
     }
-    else if ( name.equals( "packet_disconnect" ) )
+    else if ( name.equals( "disconnect" ) )
     {
       ( (ILoginHandler) handler ).handleDisconnect( this );
     }
-    else if ( name.equals( "packet_success" ) )
+    else if ( name.equals( "success" ) )
     {
       ( (ILoginHandler) handler ).handleLoginSuccess( this );
     }
-    else if ( name.equals( "packet_login" ) )
+    else if ( name.equals( "login" ) )
     {
       ( (IPlayHandler) handler ).handleJoinGame( this );
+    }
+    else if ( name.equals( "keep_alive" ) )
+    {
+      ( (IPlayHandler) handler ).handleKeepAlive( this );
     }
   }
 }

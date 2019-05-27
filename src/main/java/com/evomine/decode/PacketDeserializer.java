@@ -121,7 +121,7 @@ public class PacketDeserializer
       }
       else
       {
-        throw new UnsupportedOperationException( "Unknown class " + classType );
+        throw new UnsupportedOperationException( "PacketDeserializer: Unknown class " + classType );
       }
     }
     else if ( object.isJsonObject() )
@@ -136,13 +136,13 @@ public class PacketDeserializer
       {
         if ( !jsonObject.get( "anon" ).getAsBoolean() )
         {
-          throw new IllegalArgumentException( "anon is present but is false" );
+          throw new IllegalArgumentException( "PacketDeserializer: anon is present but is false" );
         }
         varName = "anonvoid";
       }
       else
       {
-        throw new IllegalArgumentException( "Could not get name or anon for json object" );
+        throw new IllegalArgumentException( "PacketDeserializer: Could not get name or anon for json object" );
       }
       Object value = objectDeserialize( jsonObject.get( "type" ), packetTypes, ancestors, buf );
       return new KeyValue( varName, value );
@@ -171,7 +171,7 @@ public class PacketDeserializer
         }
         else
         {
-          throw new UnsupportedOperationException( "Unknown type " + objectType );
+          throw new UnsupportedOperationException( "PacketDeserializer: Unknown type " + objectType );
         }
       }
     }
@@ -224,7 +224,7 @@ public class PacketDeserializer
     }
     else
     {
-      throw new RuntimeException( "Bitfield of size " + total + " not implemented" );
+      throw new RuntimeException( "PacketDeserializer: Bitfield of size " + total + " not implemented" );
     }
   }
 
@@ -453,7 +453,7 @@ public class PacketDeserializer
     }
     else
     {
-      throw new UnsupportedOperationException( "Unknown packet type " + mappingS );
+      throw new UnsupportedOperationException( "PacketDeserializer: Unknown packet type " + mappingS );
     }
   }
 
@@ -534,7 +534,7 @@ public class PacketDeserializer
     }
     else
     {
-      throw new UnsupportedOperationException( "Unknown native type " + type );
+      throw new UnsupportedOperationException( "PacketDeserializer: Unknown native type " + type );
     }
   }
 }

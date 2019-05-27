@@ -218,7 +218,7 @@ public class PlayHandler implements IPlayHandler
   @Override
   public void handleKeepAlive( Packet packetIn )
   {
-
+    netManager.sendPacket( packetIn );
   }
 
   @Override

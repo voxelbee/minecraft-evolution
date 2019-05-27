@@ -16,6 +16,7 @@ public class Main
 
   public static final Gson GSON = new Gson();
   public static final Protocol PROTOCOL = new Protocol( "1.12" );
+  public static boolean run = true;
 
   public static void main( String[] args ) throws IOException
   {
@@ -24,8 +25,17 @@ public class Main
     NettyManager manager = NettyManager.createNetworkManagerAndConnect( InetAddress.getByName( ip ), port, true );
     manager.setNetHandler( new LoginHandler( manager ) );
 
+    try
+    {
+      Thread.sleep( 1000 );
+    }
+    catch ( InterruptedException e1 )
+    {
+      e1.printStackTrace();
+    }
+
     Packet C00Handshake = new Packet( "set_protocol", EnumConnectionState.HANDSHAKING );
-    C00Handshake.params.put( "protocolVersion", PROTOCOL.getProtocol() );
+    C00Handshake.params.put( "protocolVersion", PROTOCOL.getVersion() );
     C00Handshake.params.put( "serverHost", ip );
     C00Handshake.params.put( "serverPort", (short) port );
     C00Handshake.params.put( "nextState", EnumConnectionState.LOGIN.getId() );
@@ -35,7 +45,7 @@ public class Main
     CLogin.params.put( "username", "jim" );
     manager.sendPacket( CLogin );
 
-    while ( true )
+    while ( manager.running )
     {
       try
       {

@@ -27,6 +27,7 @@ public class NettyDecoder extends ByteToMessageDecoder
       EnumConnectionState state = ( p_decode_1_.channel().attr( NettyManager.PROTOCOL_ATTRIBUTE_KEY ).get() );
 
       Packet packet = Main.PROTOCOL.decodeBuffer( p_decode_2_, state );
+      packet.state = state;
       System.out.println( "Decoded: " + packet.name );
 
       if ( p_decode_2_.readableBytes() > 0 )

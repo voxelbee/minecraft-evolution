@@ -18,13 +18,88 @@ public class PacketSerializer
         .getAsJsonObject( packet.state.getAsString() )
         .getAsJsonObject( EnumPacketDirection.SERVERBOUND.getAsString() )
         .getAsJsonObject( "types" ).getAsJsonArray( "packet_" + packet.name );
-    System.out.println( packetArray );
+
+    JsonObject idMap = json.getAsJsonObject()
+        .getAsJsonObject( packet.state.getAsString() )
+        .getAsJsonObject( EnumPacketDirection.SERVERBOUND.getAsString() )
+        .getAsJsonObject( "types" )
+        .getAsJsonArray( "packet" ).get( 1 ).getAsJsonArray().get( 0 ).getAsJsonObject()
+        .getAsJsonArray( "type" ).get( 1 ).getAsJsonObject()
+        .getAsJsonObject( "mappings" );
+
+    int id = 0;
+    for ( String key : idMap.keySet() )
+    {
+      if ( idMap.get( key ).getAsString().equals( packet.name ) )
+      {
+        id = Integer.decode( key );
+      }
+    }
+    BufferUtils.writeVarIntToBuffer( buf, id );
+    objectSerialize( packetArray, packet, buf );
   }
 
-  private static void objectSerialize( final JsonElement object,
-      final JsonObject packetTypes,
-      final ByteBuf buf ) throws JsonParseException
+  private static void objectSerialize( final JsonElement object, final Packet packet, ByteBuf buf ) throws JsonParseException
   {
+    if ( object.isJsonArray() )
+    {
+      JsonElement classObject = object.getAsJsonArray().get( 1 );
+      String classType = object.getAsJsonArray().get( 0 ).getAsString();
+      if ( classType.equals( "container" ) )
+      {
+        processContainer( classObject.getAsJsonArray(), packet, buf );
+      }
+      else
+      {
+        throw new UnsupportedOperationException( "PacketSerializer: Unknown class " + classType );
+      }
+    }
+    else
+    {
+      throw new UnsupportedOperationException( "PacketSerializer: No other types implemented " + object );
+    }
+  }
 
+  private static void processContainer( final JsonArray object, final Packet packet, ByteBuf buf )
+  {
+    for ( int i = 0; i < object.size(); i++ )
+    {
+      String dataType = object.get( i ).getAsJsonObject().get( "type" ).getAsString();
+      String varName = object.get( i ).getAsJsonObject().get( "name" ).getAsString();
+      Object value = packet.params.get( varName );
+      writeNative( dataType, value, buf );
+    }
+  }
+
+  private static void writeNative( final String type, final Object value, ByteBuf buf )
+  {
+    if ( type.equals( "varint" ) )
+    {
+      BufferUtils.writeVarIntToBuffer( buf, (int) value );
+    }
+    else if ( type.equals( "string" ) )
+    {
+      BufferUtils.writeString( buf, (String) value );
+    }
+    else if ( type.equals( "i16" ) )
+    {
+      buf.writeShort( (short) value );
+    }
+    else if ( type.equals( "u16" ) )
+    {
+      buf.writeShort( (short) value );
+    }
+    else if ( type.equals( "f64" ) )
+    {
+      buf.writeDouble( (double) value );
+    }
+    else if ( type.equals( "bool" ) )
+    {
+      buf.writeBoolean( (boolean) value );
+    }
+    else
+    {
+      throw new UnsupportedOperationException( "PacketSerializer: Unknown native type " + type );
+    }
   }
 }
