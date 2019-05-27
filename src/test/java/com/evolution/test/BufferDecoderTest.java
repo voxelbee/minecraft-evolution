@@ -98,8 +98,13 @@ public class BufferDecoderTest
     assertEquals( 0, buf.readableBytes() );
   }
 
+  /**
+   * Testing for ../ in switch
+   *
+   * @throws Exception
+   */
   @Test
-  public void testDecodeBuffer11() throws Exception
+  public void testDecodeBackwardsSwitchRef() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_11" );
     Map< String, Object > vars = PROTOCOL.decodeBuffer( buf, EnumConnectionState.PLAY );
@@ -197,9 +202,15 @@ public class BufferDecoderTest
     assertEquals( 0, buf.readableBytes() );
     assertEquals( "spawn_position", vars.get( "name" ) );
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
+    assertEquals( 1, params.size() );
+    Map< String, Object > location = (Map< String, Object >) params.get( "location" );
+    assertEquals( 3, location.size() );
+    assertEquals( 180l, location.get( "x" ) );
+    assertEquals( 64l, location.get( "y" ) );
+    assertEquals( -12l, location.get( "z" ) );
   }
 
-  // @Test
+  @Test
   public void testDecodeBuffer8073() throws Exception
   {
     ByteBuf buf = get( "buffers/buffer_8073" );
@@ -210,7 +221,7 @@ public class BufferDecoderTest
     Map< String, Object > params = (Map< String, Object >) vars.get( "params" );
   }
 
-  // @Test
+  @Test
   public void testDecodeAll() throws Exception
   {
     for ( int i = 5; i < 10000; i++ )

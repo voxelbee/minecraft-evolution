@@ -321,17 +321,31 @@ public class PacketDeserializer
     if ( compareValue == null )
     {
       String varNameToCompare = json.get( "compareTo" ).getAsString();
-      final Map< String, Object > thisOne;
-      if ( varNameToCompare.startsWith( "../" ) )
+      String[] varNameSplit = varNameToCompare.split( "/" );
+      Map< String, Object > thisOne;
+
+      int ansestorLoc = 1;
+      int index = 0;
+      for ( int i = 0; i < varNameSplit.length; i++ )
       {
-        varNameToCompare = varNameToCompare.substring( 3 );
-        thisOne = ancestors.get( ancestors.size() - 2 );
+        if ( varNameSplit[ i ].equals( ".." ) )
+        {
+          ansestorLoc += 1;
+        }
+        else
+        {
+          index = i;
+          break;
+        }
       }
-      else
+      thisOne = ancestors.get( ancestors.size() - ansestorLoc );
+
+      for ( int i = index; i < varNameSplit.length - 1; i++ )
       {
-        thisOne = ancestors.get( ancestors.size() - 1 );
+        thisOne = (Map< String, Object >) thisOne.get( varNameSplit[ i ] );
       }
-      String key = String.valueOf( thisOne.get( varNameToCompare ) );
+
+      String key = String.valueOf( thisOne.get( varNameSplit[ varNameSplit.length - 1 ] ) );
       JsonElement element = json.get( "fields" ).getAsJsonObject().get( key );
       if ( element == null )
       {
