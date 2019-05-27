@@ -15,6 +15,7 @@ import java.util.UUID;
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.gson.JsonArray;
@@ -279,6 +280,7 @@ public class PacketDeserializer
     int count = ( (Number) readNative( json.get( "countType" ).getAsString(), buf ) ).intValue();
 
     String value = buf.toString( buf.readerIndex(), count, StandardCharsets.UTF_8 );
+    checkState( CharMatcher.ascii().matchesAllOf( value ), "String is not ascii: " + value );
     buf.readerIndex( buf.readerIndex() + count );
     return value;
   }
