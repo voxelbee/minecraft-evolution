@@ -23,7 +23,6 @@ public class Main
     for ( int i = 0; i < con.length; i++ )
     {
       con[ i ] = new Connection( ip, port, "Player" + i );
-      con[ i ].connect();
     }
 
     while ( con[ 0 ].isConnected )

@@ -27,7 +27,15 @@ public class Connection
     this.ip = ip;
     this.port = port;
     this.userName = userName;
-    this.player = new Player( this );
+    this.player = new Player();
+    try
+    {
+      this.connect();
+    }
+    catch ( UnknownHostException e )
+    {
+      Main.LOGGER.log( EnumLoggerType.ERROR, "Unknown host: " + ip + ":" + port );
+    }
   }
 
   /**
@@ -65,7 +73,7 @@ public class Connection
     this.manager.getNetHandler().update();
     if ( this.manager.getNetHandler() instanceof PlayHandler )
     {
-      if ( this.player.health <= 0.0f )
+      if ( this.player.getHealth() <= 0.0f )
       {
         ( (PlayHandler) this.manager.getNetHandler() ).respawn();
       }

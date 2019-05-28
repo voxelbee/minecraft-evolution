@@ -1,28 +1,44 @@
 package com.evolution.player;
 
-import com.evolution.network.Connection;
-
 public class Player
 {
-  private Connection connection;
+  private float health;
+  private int food;
 
-  public float health;
-  public int food;
-  public float foodSaturation;
+  public double x;
+  public double y;
+  public double z;
 
-  public float forward;
-  public float strafe;
+  public float yaw;
+  public float pitch;
 
-  public Player( Connection connection )
-  {
-    this.connection = connection;
-  }
+  public boolean onGround;
 
   /**
    * Called to update player logic
    */
   public void update()
   {
-    forward = 0.1f;
+
+  }
+
+  public float getHealth()
+  {
+    return this.health;
+  }
+
+  public int getFood()
+  {
+    return this.food;
+  }
+
+  public void setHealth( float inHealth )
+  {
+    this.health = inHealth;
+  }
+
+  public void setFood( int inFood )
+  {
+    this.food = inFood;
   }
 }
