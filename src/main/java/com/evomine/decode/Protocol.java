@@ -102,7 +102,13 @@ public class Protocol
 
   public Packet decodeBuffer( ByteBuf buf, EnumConnectionState state )
   {
-    Packet packet = new Packet( PacketDeserializer.packetDeserialize( protocol, buf, state ) );
+    Packet packet = new Packet( PacketDeserializer.packetDeserializeClient( protocol, buf, state ) );
+    return packet;
+  }
+
+  public Packet decodeBufferTest( ByteBuf buf, EnumConnectionState state )
+  {
+    Packet packet = new Packet( PacketDeserializer.packetDeserializeServer( protocol, buf, state ) );
     return packet;
   }
 

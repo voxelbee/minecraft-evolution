@@ -71,7 +71,7 @@ public class NettyManager extends SimpleChannelInboundHandler< Packet >
   private boolean isEncrypted;
   private boolean disconnected;
 
-  private Connection parent;
+  public Connection parent;
 
   public NettyManager( Connection inParent )
   {

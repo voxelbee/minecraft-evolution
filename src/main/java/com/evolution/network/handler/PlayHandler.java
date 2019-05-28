@@ -2,15 +2,40 @@ package com.evolution.network.handler;
 
 import com.evolution.main.EnumLoggerType;
 import com.evolution.main.Main;
+import com.evolution.network.EnumConnectionState;
+import com.evolution.player.Player;
 import com.evomine.decode.Packet;
 
-public class PlayHandler implements IPlayHandler
+public class PlayHandler implements INetHandler
 {
   private final NettyManager netManager;
+  private Player player;
+
+  // Server position
+  private double lastPosX;
+  private double lastPosY;
+  private double lastPosZ;
+
+  // Local pos of player
+  public double localPosX;
+  public double localPosY;
+  public double localPosZ;
+
+  // Walk speed of player
+  public float walkSpeed;
+
+  // Server rotations
+  private float lastYaw;
+  private float lastPitch;
+
+  // Local rotations
+  public float localYaw;
+  public float localPitch;
 
   public PlayHandler( NettyManager networkManagerIn )
   {
     this.netManager = networkManagerIn;
+    this.player = netManager.parent.getPlayer();
   }
 
   @Override
@@ -19,459 +44,93 @@ public class PlayHandler implements IPlayHandler
     Main.LOGGER.log( EnumLoggerType.WARN, "Disconnected from server: " + reason );
   }
 
-  @Override
-  public void handleSpawnObject( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnExperienceOrb( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnGlobalEntity( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnMob( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleScoreboardObjective( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnPainting( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnPlayer( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleAnimation( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleStatistics( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleRecipeBook( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleBlockBreakAnim( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSignEditorOpen( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleUpdateTileEntity( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleBlockAction( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleBlockChange( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleChat( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleTabComplete( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleMultiBlockChange( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleMaps( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleConfirmTransaction( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCloseWindow( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleWindowItems( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleOpenWindow( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleWindowProperty( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSetSlot( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCustomPayload( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleDisconnect( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleUseBed( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityStatus( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityAttach( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSetPassengers( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleExplosion( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleChangeGameState( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleKeepAlive( Packet packetIn )
-  {
-    netManager.sendPacket( packetIn );
-  }
-
-  @Override
-  public void handleChunkData( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void processChunkUnload( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEffect( Packet packetIn )
-  {
-
-  }
-
-  @Override
+  /**
+   * Handles the packet [login] for the current player
+   */
   public void handleJoinGame( Packet packetIn )
   {
-
+    Packet settings = new Packet( "settings", EnumConnectionState.PLAY );
+    settings.params.put( "locale", "en_GB" );
+    settings.params.put( "viewDistance", (byte) 4 );
+    settings.params.put( "chatFlags", 2 );
+    settings.params.put( "chatColors", false );
+    settings.params.put( "skinParts", (byte) 0 );
+    settings.params.put( "mainHand", 1 );
+    this.netManager.sendPacket( settings );
   }
 
-  @Override
-  public void handleEntityMovement( Packet packetIn )
+  public void respawn()
   {
-
+    Packet respawn = new Packet( "client_command", EnumConnectionState.PLAY );
+    respawn.params.put( "actionId", 0 );
+    this.netManager.sendPacket( respawn );
   }
 
-  @Override
-  public void handlePlayerPosLook( Packet packetIn )
+  private void updatePosition( double x, double y, double z, boolean onGround )
   {
-
+    Packet postionPacket = new Packet( "position", EnumConnectionState.PLAY );
+    postionPacket.params.put( "x", x );
+    postionPacket.params.put( "y", y );
+    postionPacket.params.put( "z", z );
+    postionPacket.params.put( "onGround", onGround );
+    this.netManager.sendPacket( postionPacket );
   }
 
-  @Override
-  public void handleParticles( Packet packetIn )
+  public void handlePosition( Packet inPacket )
   {
+    System.out.println( inPacket.params );
+    setLocalAndLastPos( (double) inPacket.params.get( "x" ), (double) inPacket.params.get( "y" ), (double) inPacket.params.get( "z" ) );
 
+    Packet confirm = new Packet( "teleport_confirm", EnumConnectionState.PLAY );
+    confirm.params.put( "teleportId", (int) inPacket.params.get( "teleportId" ) );
+    this.netManager.sendPacket( confirm );
   }
 
-  @Override
   public void handlePlayerAbilities( Packet packetIn )
   {
-
+    this.walkSpeed = (float) packetIn.params.get( "walkingSpeed" );
   }
 
-  @Override
-  public void handlePlayerListItem( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleDestroyEntities( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleRemoveEntityEffect( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleRespawn( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityHeadLook( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleHeldItemChange( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleDisplayObjective( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityMetadata( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityVelocity( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityEquipment( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSetExperience( Packet packetIn )
-  {
-
-  }
-
-  @Override
   public void handleUpdateHealth( Packet packetIn )
   {
+    this.player.health = (float) packetIn.params.get( "health" );
+    this.player.food = (int) packetIn.params.get( "food" );
+    this.player.foodSaturation = (float) packetIn.params.get( "foodSaturation" );
+  }
 
+  public void handleKeepAlive( Packet packetIn )
+  {
+    this.netManager.sendPacket( packetIn );
+  }
+
+  public void updateMovement()
+  {
+    this.localPosX += this.player.forward;
+    this.localPosZ += this.player.strafe;
+  }
+
+  public void setLocalAndLastPos( double x, double y, double z )
+  {
+    this.localPosX = x;
+    this.localPosY = y;
+    this.localPosZ = z;
+
+    this.lastPosX = x;
+    this.lastPosY = y;
+    this.lastPosZ = z;
   }
 
   @Override
-  public void handleTeams( Packet packetIn )
+  public void update()
   {
+    this.player.update();
+    updateMovement();
 
-  }
+    boolean flag = this.lastPosX != this.localPosX || this.lastPosY != this.localPosY || this.lastPosZ != this.localPosZ;
 
-  @Override
-  public void handleUpdateScore( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSpawnPosition( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleTimeUpdate( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleSoundEffect( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCustomSound( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCollectItem( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityTeleport( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityProperties( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleEntityEffect( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCombatEvent( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleServerDifficulty( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCamera( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleWorldBorder( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleTitle( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handlePlayerListHeaderFooter( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleResourcePack( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleUpdateEntityNBT( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleCooldown( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleMoveVehicle( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleAdvancementInfo( Packet packetIn )
-  {
-
-  }
-
-  @Override
-  public void handleAdvancementsTap( Packet packetIn )
-  {
-
+    if ( flag )
+    {
+      updatePosition( this.localPosX, this.localPosY, this.localPosZ, true );
+    }
   }
 }

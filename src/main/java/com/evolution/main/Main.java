@@ -28,6 +28,11 @@ public class Main
 
     while ( con[ 0 ].isConnected )
     {
+      for ( int i = 0; i < con.length; i++ )
+      {
+        con[ i ].update();
+      }
+
       try
       {
         Thread.sleep( 100 );

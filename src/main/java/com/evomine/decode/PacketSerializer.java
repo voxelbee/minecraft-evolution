@@ -1,5 +1,7 @@
 package com.evomine.decode;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.evolution.network.EnumPacketDirection;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -67,6 +69,7 @@ public class PacketSerializer
       String dataType = object.get( i ).getAsJsonObject().get( "type" ).getAsString();
       String varName = object.get( i ).getAsJsonObject().get( "name" ).getAsString();
       Object value = packet.params.get( varName );
+      checkNotNull( value, "params" );
       writeNative( dataType, value, buf );
     }
   }
@@ -96,6 +99,23 @@ public class PacketSerializer
     else if ( type.equals( "bool" ) )
     {
       buf.writeBoolean( (boolean) value );
+    }
+    else if ( type.equals( "i8" ) )
+    {
+      buf.writeByte( (byte) value );
+    }
+    else if ( type.equals( "u8" ) )
+    {
+      buf.writeByte( (byte) value );
+    }
+    else if ( type.equals( "f32" ) )
+    {
+      buf.writeFloat( (float) value );
+    }
+    else if ( type.equals( "restBuffer" ) )
+    {
+      BufferUtils.writeVarIntToBuffer( buf, ( (byte[]) value ).length );
+      buf.writeBytes( (byte[]) value );
     }
     else
     {

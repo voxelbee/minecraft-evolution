@@ -28,13 +28,25 @@ import io.netty.buffer.ByteBuf;
 public class PacketDeserializer
 {
 
-  public static Map< String, Object > packetDeserialize( final JsonElement json,
+  public static Map< String, Object > packetDeserializeClient( final JsonElement json,
       final ByteBuf buf,
       final EnumConnectionState state )
   {
     JsonObject types = json.getAsJsonObject()
         .getAsJsonObject( state.getAsString() )
         .getAsJsonObject( EnumPacketDirection.CLIENTBOUND.getAsString() )
+        .getAsJsonObject( "types" );
+    JsonElement packets = types.get( "packet" );
+    return (Map< String, Object >) objectDeserialize( packets, types, Collections.emptyList(), buf );
+  }
+
+  public static Map< String, Object > packetDeserializeServer( final JsonElement json,
+      final ByteBuf buf,
+      final EnumConnectionState state )
+  {
+    JsonObject types = json.getAsJsonObject()
+        .getAsJsonObject( state.getAsString() )
+        .getAsJsonObject( EnumPacketDirection.SERVERBOUND.getAsString() )
         .getAsJsonObject( "types" );
     JsonElement packets = types.get( "packet" );
     return (Map< String, Object >) objectDeserialize( packets, types, Collections.emptyList(), buf );

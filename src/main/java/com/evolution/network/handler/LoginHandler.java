@@ -5,7 +5,7 @@ import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evomine.decode.Packet;
 
-public class LoginHandler implements ILoginHandler
+public class LoginHandler implements INetHandler
 {
   private final NettyManager networkManager;
 
@@ -14,7 +14,6 @@ public class LoginHandler implements ILoginHandler
     this.networkManager = networkManagerIn;
   }
 
-  @Override
   public void handleLoginSuccess( Packet packetIn )
   {
     this.networkManager.setConnectionState( EnumConnectionState.PLAY );
@@ -31,18 +30,22 @@ public class LoginHandler implements ILoginHandler
     Main.LOGGER.log( EnumLoggerType.WARN, "Disconnected from server: " + reason );
   }
 
-  @Override
   public void handleDisconnect( Packet packetIn )
   {
     this.networkManager.closeChannel( (String) packetIn.params.get( "reason" ) );
   }
 
-  @Override
   public void handleEnableCompression( Packet packetIn )
   {
     if ( !this.networkManager.isLocalChannel() )
     {
       this.networkManager.setCompressionThreshold( (int) packetIn.params.get( "threshold" ) );
     }
+  }
+
+  @Override
+  public void update()
+  {
+
   }
 }

@@ -4,9 +4,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.evolution.network.EnumConnectionState;
-import com.evolution.network.handler.ILoginHandler;
 import com.evolution.network.handler.INetHandler;
-import com.evolution.network.handler.IPlayHandler;
+import com.evolution.network.handler.LoginHandler;
+import com.evolution.network.handler.PlayHandler;
 
 public class Packet
 {
@@ -31,23 +31,35 @@ public class Packet
   {
     if ( name.equals( "compress" ) )
     {
-      ( (ILoginHandler) handler ).handleEnableCompression( this );
+      ( (LoginHandler) handler ).handleEnableCompression( this );
     }
     else if ( name.equals( "disconnect" ) )
     {
-      ( (ILoginHandler) handler ).handleDisconnect( this );
+      ( (LoginHandler) handler ).handleDisconnect( this );
     }
     else if ( name.equals( "success" ) )
     {
-      ( (ILoginHandler) handler ).handleLoginSuccess( this );
+      ( (LoginHandler) handler ).handleLoginSuccess( this );
     }
     else if ( name.equals( "login" ) )
     {
-      ( (IPlayHandler) handler ).handleJoinGame( this );
+      ( (PlayHandler) handler ).handleJoinGame( this );
     }
     else if ( name.equals( "keep_alive" ) )
     {
-      ( (IPlayHandler) handler ).handleKeepAlive( this );
+      ( (PlayHandler) handler ).handleKeepAlive( this );
+    }
+    else if ( name.equals( "position" ) )
+    {
+      ( (PlayHandler) handler ).handlePosition( this );
+    }
+    else if ( name.equals( "update_health" ) )
+    {
+      ( (PlayHandler) handler ).handleUpdateHealth( this );
+    }
+    else if ( name.equals( "packet_abilities" ) )
+    {
+      ( (PlayHandler) handler ).handlePlayerAbilities( this );
     }
   }
 }
