@@ -1,95 +1,73 @@
 package com.evolution.player;
 
-import com.evomine.decode.BufferUtils;
-
 import io.netty.buffer.ByteBuf;
 
 public class Chunk
 {
   public boolean loaded;
-
-  private int[][] blockpallets;
-
-  private BitArray[] blockStorage;
-  private byte bits;
+  private ChunkPart[] parts;
 
   public Chunk()
   {
-    this.bits = 4;
-    this.blockpallets = new int[ 16 ][];
-    this.blockStorage = new BitArray[ 16 ];
+    this.parts = new ChunkPart[ 16 ];
   }
 
-  public void populate( ByteBuf data, int availableSections )
+  /**
+   * Initalizes the chunk and loads in the data from the buffer.
+   *
+   * @param data
+   * @param availableSections
+   */
+  public void loadFromData( ByteBuf data, int availableSections )
   {
-    for ( int i = 0; i < blockStorage.length; i++ )
+    for ( int i = 0; i < 16; i++ )
     {
       if ( ( availableSections & 1 << i ) == 0 )
       {
-        this.blockStorage[ i ] = null;
+        parts[ i ] = null;
       }
       else
       {
-        readChunkSection( data, i );
+        parts[ i ] = new ChunkPart();
+        parts[ i ].load( data );
       }
     }
   }
 
-  private void readChunkSection( ByteBuf data, int sectionId )
-  {
-    this.bits = data.readByte(); // read one byte for how many bits represent the blocks
-
-    // READ IN THE BLOCK PALLTE
-    int arraySize = BufferUtils.readVarIntFromBuffer( data );
-    this.blockpallets[ sectionId ] = new int[ arraySize ];
-
-    for ( int j = 0; j < arraySize; ++j )
-    {
-      this.blockpallets[ sectionId ][ j ] = BufferUtils.readVarIntFromBuffer( data );
-    }
-
-    // Read in the blocks
-    this.blockStorage[ sectionId ] = new BitArray( this.bits, 4096 );
-    BufferUtils.readLongArray( this.blockStorage[ sectionId ].getBackingLongArray(), data );
-
-    // we don't needs the lighting data
-    data.readerIndex( data.readerIndex() + 4096 );
-  }
-
+  /**
+   * Sets a block within this chunk from a block id
+   */
   public void setBlock( int x, int y, int z, int id )
   {
-    if ( y >= 0 && y >> 4 < this.blockStorage.length )
+    if ( y >= 0 && y >> 4 < 16 )
     {
-      BitArray blocks = this.blockStorage[ y >> 4 ];
-      int[] pallte = this.blockpallets[ y >> 4 ];
+      ChunkPart chunkPart = this.parts[ y >> 4 ];
 
-      int index = 0;
-      for ( int i = 0; i < pallte.length; i++ )
+      if ( chunkPart != null )
       {
-        if ( pallte[ i ] == id << 4 )
-        {
-          index = i;
-          break;
-        }
+        chunkPart.setBlockID( x, y, z, id );
       }
-
-      if ( blocks != null )
+      else
       {
-        blocks.setAt( ( y & 15 ) << 8 | ( z & 15 ) << 4 | ( x & 15 ), index );
+        this.parts[ y >> 4 ] = new ChunkPart();
       }
     }
   }
 
+  /**
+   * Gets a block id from the chunk
+   *
+   * @return the block id
+   */
   public int getBlock( int x, int y, int z )
   {
-    if ( y >= 0 && y >> 4 < this.blockStorage.length )
+    if ( y >= 0 && y >> 4 < 16 )
     {
-      BitArray blocks = this.blockStorage[ y >> 4 ];
-      int[] pallte = this.blockpallets[ y >> 4 ];
+      ChunkPart chunkPart = this.parts[ y >> 4 ];
 
-      if ( blocks != null )
+      if ( chunkPart != null )
       {
-        return pallte[ blocks.getAt( ( y & 15 ) << 8 | ( z & 15 ) << 4 | ( x & 15 ) ) ] >> 4;
+        return chunkPart.getBlockID( x, y, z );
       }
     }
 

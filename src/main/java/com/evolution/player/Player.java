@@ -1,7 +1,5 @@
 package com.evolution.player;
 
-import com.evolution.main.Main;
-
 public class Player
 {
   private float health;
@@ -21,7 +19,7 @@ public class Player
    */
   public void update()
   {
-    System.out.println( Main.world.getBlock( x, y - 1, z ) );
+
   }
 
   public float getHealth()

@@ -61,12 +61,12 @@ public class PlayHandler implements INetHandler
     int availableSections = (int) packetIn.params.get( "bitMap" );
     ByteBuf chunkData = Unpooled.wrappedBuffer( (byte[]) packetIn.params.get( "chunkData" ) );
 
-    if ( !Main.world.hasChunk( chunkX, chunkY ) )
+    if ( !Main.WORLD.hasChunk( chunkX, chunkY ) )
     {
       Main.LOGGER.log( EnumLoggerType.INFO, "Loading chunk: x" + chunkX + " z" + chunkY );
       Chunk chunk = new Chunk();
-      Main.world.setChunk( chunkX, chunkY, chunk );
-      chunk.populate( chunkData, availableSections );
+      Main.WORLD.setChunk( chunkX, chunkY, chunk );
+      chunk.loadFromData( chunkData, availableSections );
       chunkData.release();
       chunk.loaded = true;
     }
@@ -79,7 +79,7 @@ public class PlayHandler implements INetHandler
     int posY = ( (Long) pos.get( "y" ) ).intValue();
     int posZ = ( (Long) pos.get( "z" ) ).intValue();
     int id = ( (int) packetIn.params.get( "type" ) ) >> 4;
-    Main.world.setBlock( posX, posY, posZ, id );
+    Main.WORLD.setBlock( posX, posY, posZ, id );
   }
 
   public void respawn()

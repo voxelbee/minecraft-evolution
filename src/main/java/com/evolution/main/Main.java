@@ -13,8 +13,7 @@ public class Main
 
   public static final Gson GSON = new Gson();
   public static final Protocol PROTOCOL = new Protocol( "1.12" );
-
-  public static final World world = new World();
+  public static final World WORLD = new World();
 
   public static void main( String[] args ) throws IOException
   {
