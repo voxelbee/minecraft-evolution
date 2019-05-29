@@ -26,17 +26,25 @@ public class NettyDecoder extends ByteToMessageDecoder
     {
       EnumConnectionState state = ( p_decode_1_.channel().attr( NettyManager.PROTOCOL_ATTRIBUTE_KEY ).get() );
 
-      Packet packet = Main.PROTOCOL.decodeBuffer( p_decode_2_, state );
-      packet.state = state;
+      Packet packet = null;
+      try
+      {
+        packet = Main.PROTOCOL.decodeBuffer( p_decode_2_, state );
+        packet.state = state;
 
-      if ( p_decode_2_.readableBytes() > 0 )
-      {
-        throw new IOException( "Packet " + state + " (" + packet.name + ") was larger than I expected, found "
-            + p_decode_2_.readableBytes() + " bytes extra whilst reading packet" );
+        if ( p_decode_2_.readableBytes() > 0 )
+        {
+          throw new IOException( "Packet " + state + " (" + packet.name + ") was larger than I expected, found "
+              + p_decode_2_.readableBytes() + " bytes extra whilst reading packet" );
+        }
+        else
+        {
+          p_decode_3_.add( packet );
+        }
       }
-      else
+      catch ( Exception e )
       {
-        p_decode_3_.add( packet );
+        e.printStackTrace();
       }
     }
   }

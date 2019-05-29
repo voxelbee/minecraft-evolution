@@ -1,10 +1,16 @@
 package com.evolution.network.handler;
 
+import java.util.Map;
+
 import com.evolution.main.EnumLoggerType;
 import com.evolution.main.Main;
 import com.evolution.network.EnumConnectionState;
+import com.evolution.player.Chunk;
 import com.evolution.player.Player;
 import com.evomine.decode.Packet;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 public class PlayHandler implements INetHandler
 {
@@ -40,12 +46,40 @@ public class PlayHandler implements INetHandler
   {
     Packet settings = new Packet( "settings", EnumConnectionState.PLAY );
     settings.params.put( "locale", "en_GB" );
-    settings.params.put( "viewDistance", (byte) 4 );
+    settings.params.put( "viewDistance", (byte) 10 );
     settings.params.put( "chatFlags", 2 );
     settings.params.put( "chatColors", false );
     settings.params.put( "skinParts", (byte) 0 );
     settings.params.put( "mainHand", 1 );
     this.netManager.sendPacket( settings );
+  }
+
+  public void handleMapChunk( Packet packetIn )
+  {
+    int chunkX = (int) packetIn.params.get( "x" );
+    int chunkY = (int) packetIn.params.get( "z" );
+    int availableSections = (int) packetIn.params.get( "bitMap" );
+    ByteBuf chunkData = Unpooled.wrappedBuffer( (byte[]) packetIn.params.get( "chunkData" ) );
+
+    if ( !Main.world.hasChunk( chunkX, chunkY ) )
+    {
+      Main.LOGGER.log( EnumLoggerType.INFO, "Loading chunk: x" + chunkX + " z" + chunkY );
+      Chunk chunk = new Chunk();
+      Main.world.setChunk( chunkX, chunkY, chunk );
+      chunk.populate( chunkData, availableSections );
+      chunkData.release();
+      chunk.loaded = true;
+    }
+  }
+
+  public void handleBlockChange( Packet packetIn )
+  {
+    Map< String, Object > pos = (Map< String, Object >) packetIn.params.get( "location" );
+    int posX = ( (Long) pos.get( "x" ) ).intValue();
+    int posY = ( (Long) pos.get( "y" ) ).intValue();
+    int posZ = ( (Long) pos.get( "z" ) ).intValue();
+    int id = ( (int) packetIn.params.get( "type" ) ) >> 4;
+    Main.world.setBlock( posX, posY, posZ, id );
   }
 
   public void respawn()

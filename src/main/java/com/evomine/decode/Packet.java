@@ -45,6 +45,14 @@ public class Packet
     {
       ( (PlayHandler) handler ).handleJoinGame( this );
     }
+    else if ( name.equals( "map_chunk" ) )
+    {
+      ( (PlayHandler) handler ).handleMapChunk( this );
+    }
+    else if ( name.equals( "block_change" ) )
+    {
+      ( (PlayHandler) handler ).handleBlockChange( this );
+    }
     else if ( name.equals( "keep_alive" ) )
     {
       ( (PlayHandler) handler ).handleKeepAlive( this );

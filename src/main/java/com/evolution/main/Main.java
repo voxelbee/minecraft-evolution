@@ -3,6 +3,7 @@ package com.evolution.main;
 import java.io.IOException;
 
 import com.evolution.network.Connection;
+import com.evolution.player.World;
 import com.evomine.decode.Protocol;
 import com.google.gson.Gson;
 
@@ -12,6 +13,8 @@ public class Main
 
   public static final Gson GSON = new Gson();
   public static final Protocol PROTOCOL = new Protocol( "1.12" );
+
+  public static final World world = new World();
 
   public static void main( String[] args ) throws IOException
   {
