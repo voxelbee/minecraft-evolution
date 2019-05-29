@@ -45,6 +45,10 @@ public class Packet
     {
       ( (PlayHandler) handler ).handleJoinGame( this );
     }
+    else if ( name.equals( "spawn_entity_living" ) )
+    {
+      ( (PlayHandler) handler ).handleSpawnEntityLiving( this );
+    }
     else if ( name.equals( "map_chunk" ) )
     {
       ( (PlayHandler) handler ).handleMapChunk( this );

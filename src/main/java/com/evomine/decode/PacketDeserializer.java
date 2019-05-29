@@ -517,7 +517,7 @@ public class PacketDeserializer
     }
     else if ( type.equals( "i16" ) )
     {
-      return buf.readShort();
+      return (int) buf.readShort();
     }
     else if ( type.equals( "f64" ) )
     {

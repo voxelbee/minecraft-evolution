@@ -12,30 +12,56 @@ import com.evolution.player.Player;
 public class World
 {
   private Map< Vector2D, Chunk > chunks = new HashMap< Vector2D, Chunk >();
-  private List< Player > players = new ArrayList< Player >();
+  private List< Player > localPlayers = new ArrayList< Player >();
+
+  private Map< Integer, Entity > entities = new HashMap< Integer, Entity >();
 
   public void tick()
   {
-    for ( int i = 0; i < players.size(); i++ )
+    for ( int i = 0; i < localPlayers.size(); i++ )
     {
-      players.get( i ).update();
+      localPlayers.get( i ).update();
     }
+  }
+
+  /**
+   * Returns first instance of entity with specified type
+   * 
+   * @param type
+   * @return
+   */
+  public Entity getEntity( int type )
+  {
+    for ( Integer key : entities.keySet() )
+    {
+      Entity current = entities.get( key );
+      if ( current.getType() == 91 )
+      {
+        return current;
+      }
+    }
+    return null;
+  }
+
+  public void addEntity( int id, Entity inEntity )
+  {
+    this.entities.put( id, inEntity );
   }
 
   public void addPlayer( Player inPlayer )
   {
-    this.players.add( inPlayer );
+    this.localPlayers.add( inPlayer );
   }
 
   public int createNewPlayer()
   {
-    this.players.add( new Player() );
-    return this.players.size() - 1;
+    this.localPlayers.add( new Player() );
+    return this.localPlayers.size() - 1;
   }
 
   public Player getPlayer( int id )
   {
-    return this.players.get( id );
+    return this.localPlayers.get( id );
   }
 
   public Chunk getChunk( int x, int z )
