@@ -2,11 +2,11 @@ package com.evolution.network.handler;
 
 import java.util.Map;
 
-import com.evolution.main.EnumLoggerType;
-import com.evolution.main.Main;
+import com.evolution.EnumLoggerType;
+import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
-import com.evolution.player.Chunk;
 import com.evolution.player.Player;
+import com.evolution.world.Chunk;
 import com.evomine.decode.Packet;
 
 import io.netty.buffer.ByteBuf;
@@ -15,7 +15,7 @@ import io.netty.buffer.Unpooled;
 public class PlayHandler implements INetHandler
 {
   private final NettyManager netManager;
-  private Player player;
+  private int playerIndex;
 
   // Walk speed of player
   public float walkSpeed = 0.2f;
@@ -30,7 +30,7 @@ public class PlayHandler implements INetHandler
   public PlayHandler( NettyManager networkManagerIn )
   {
     this.netManager = networkManagerIn;
-    this.player = netManager.parent.getPlayer();
+    this.playerIndex = netManager.parent.playerId;
   }
 
   @Override
@@ -63,7 +63,6 @@ public class PlayHandler implements INetHandler
 
     if ( !Main.WORLD.hasChunk( chunkX, chunkY ) )
     {
-      Main.LOGGER.log( EnumLoggerType.INFO, "Loading chunk: x" + chunkX + " z" + chunkY );
       Chunk chunk = new Chunk();
       Main.WORLD.setChunk( chunkX, chunkY, chunk );
       chunk.loadFromData( chunkData, availableSections );
@@ -91,18 +90,19 @@ public class PlayHandler implements INetHandler
 
   public void handlePosition( Packet inPacket )
   {
-    this.player.x = (double) inPacket.params.get( "x" );
-    this.player.y = (double) inPacket.params.get( "y" );
-    this.player.z = (double) inPacket.params.get( "z" );
-    this.player.pitch = (float) inPacket.params.get( "pitch" );
-    this.player.yaw = (float) inPacket.params.get( "yaw" );
+    Player player = Main.WORLD.getPlayer( playerIndex );
+    player.x = (double) inPacket.params.get( "x" );
+    player.y = (double) inPacket.params.get( "y" );
+    player.z = (double) inPacket.params.get( "z" );
+    player.pitch = (float) inPacket.params.get( "pitch" );
+    player.yaw = (float) inPacket.params.get( "yaw" );
 
-    this.lastPosX = this.player.x;
-    this.lastPosY = this.player.y;
-    this.lastPosZ = this.player.z;
+    this.lastPosX = player.x;
+    this.lastPosY = player.y;
+    this.lastPosZ = player.z;
 
-    this.lastPitch = this.player.pitch;
-    this.lastYaw = this.player.yaw;
+    this.lastPitch = player.pitch;
+    this.lastYaw = player.yaw;
 
     Packet confirm = new Packet( "teleport_confirm", EnumConnectionState.PLAY );
     confirm.params.put( "teleportId", (int) inPacket.params.get( "teleportId" ) );
@@ -116,8 +116,8 @@ public class PlayHandler implements INetHandler
 
   public void handleUpdateHealth( Packet packetIn )
   {
-    this.player.setHealth( (float) packetIn.params.get( "health" ) );
-    this.player.setFood( (int) packetIn.params.get( "food" ) );
+    Main.WORLD.getPlayer( playerIndex ).setHealth( (float) packetIn.params.get( "health" ) );
+    Main.WORLD.getPlayer( playerIndex ).setFood( (int) packetIn.params.get( "food" ) );
   }
 
   public void handleKeepAlive( Packet packetIn )
@@ -128,51 +128,50 @@ public class PlayHandler implements INetHandler
   @Override
   public void update()
   {
-    this.player.update();
-
-    boolean shouldSendPos = this.player.x != this.lastPosX || this.player.y != this.lastPosY || this.player.z != this.lastPosZ;
-    boolean shouldSendLook = this.player.pitch != this.lastPitch || this.player.yaw != this.lastYaw;
+    Player player = Main.WORLD.getPlayer( playerIndex );
+    boolean shouldSendPos = player.x != this.lastPosX || player.y != this.lastPosY || player.z != this.lastPosZ;
+    boolean shouldSendLook = player.pitch != this.lastPitch || player.yaw != this.lastYaw;
 
     if ( shouldSendPos && shouldSendLook )
     {
       Packet postionPacket = new Packet( "position_look", EnumConnectionState.PLAY );
-      postionPacket.params.put( "x", this.player.x );
-      postionPacket.params.put( "y", this.player.y );
-      postionPacket.params.put( "z", this.player.z );
-      postionPacket.params.put( "yaw", this.player.yaw );
-      postionPacket.params.put( "pitch", this.player.pitch );
-      postionPacket.params.put( "onGround", this.player.onGround );
+      postionPacket.params.put( "x", player.x );
+      postionPacket.params.put( "y", player.y );
+      postionPacket.params.put( "z", player.z );
+      postionPacket.params.put( "yaw", player.yaw );
+      postionPacket.params.put( "pitch", player.pitch );
+      postionPacket.params.put( "onGround", player.onGround );
       this.netManager.sendPacket( postionPacket );
 
-      this.lastPosX = this.player.x;
-      this.lastPosY = this.player.y;
-      this.lastPosZ = this.player.z;
-      this.lastPitch = this.player.pitch;
-      this.lastYaw = this.player.yaw;
+      this.lastPosX = player.x;
+      this.lastPosY = player.y;
+      this.lastPosZ = player.z;
+      this.lastPitch = player.pitch;
+      this.lastYaw = player.yaw;
     }
     else if ( shouldSendPos )
     {
       Packet postionPacket = new Packet( "position", EnumConnectionState.PLAY );
-      postionPacket.params.put( "x", this.player.x );
-      postionPacket.params.put( "y", this.player.y );
-      postionPacket.params.put( "z", this.player.z );
-      postionPacket.params.put( "onGround", this.player.onGround );
+      postionPacket.params.put( "x", player.x );
+      postionPacket.params.put( "y", player.y );
+      postionPacket.params.put( "z", player.z );
+      postionPacket.params.put( "onGround", player.onGround );
       this.netManager.sendPacket( postionPacket );
 
-      this.lastPosX = this.player.x;
-      this.lastPosY = this.player.y;
-      this.lastPosZ = this.player.z;
+      this.lastPosX = player.x;
+      this.lastPosY = player.y;
+      this.lastPosZ = player.z;
     }
     else if ( shouldSendLook )
     {
       Packet postionPacket = new Packet( "look", EnumConnectionState.PLAY );
-      postionPacket.params.put( "yaw", this.player.yaw );
-      postionPacket.params.put( "pitch", this.player.pitch );
-      postionPacket.params.put( "onGround", this.player.onGround );
+      postionPacket.params.put( "yaw", player.yaw );
+      postionPacket.params.put( "pitch", player.pitch );
+      postionPacket.params.put( "onGround", player.onGround );
       this.netManager.sendPacket( postionPacket );
 
-      this.lastPitch = this.player.pitch;
-      this.lastYaw = this.player.yaw;
+      this.lastPitch = player.pitch;
+      this.lastYaw = player.yaw;
     }
   }
 }

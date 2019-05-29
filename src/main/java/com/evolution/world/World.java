@@ -1,13 +1,42 @@
-package com.evolution.player;
+package com.evolution.world;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
+import com.evolution.player.Player;
+
 public class World
 {
   private Map< Vector2D, Chunk > chunks = new HashMap< Vector2D, Chunk >();
+  private List< Player > players = new ArrayList< Player >();
+
+  public void tick()
+  {
+    for ( int i = 0; i < players.size(); i++ )
+    {
+      players.get( i ).update();
+    }
+  }
+
+  public void addPlayer( Player inPlayer )
+  {
+    this.players.add( inPlayer );
+  }
+
+  public int createNewPlayer()
+  {
+    this.players.add( new Player() );
+    return this.players.size() - 1;
+  }
+
+  public Player getPlayer( int id )
+  {
+    return this.players.get( id );
+  }
 
   public Chunk getChunk( int x, int z )
   {

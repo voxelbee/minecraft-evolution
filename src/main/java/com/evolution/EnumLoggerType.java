@@ -1,4 +1,4 @@
-package com.evolution.main;
+package com.evolution;
 
 public enum EnumLoggerType
 {

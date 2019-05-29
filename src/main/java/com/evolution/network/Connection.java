@@ -3,12 +3,10 @@ package com.evolution.network;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import com.evolution.main.EnumLoggerType;
-import com.evolution.main.Main;
+import com.evolution.EnumLoggerType;
+import com.evolution.Main;
 import com.evolution.network.handler.LoginHandler;
 import com.evolution.network.handler.NettyManager;
-import com.evolution.network.handler.PlayHandler;
-import com.evolution.player.Player;
 import com.evomine.decode.Packet;
 
 public class Connection
@@ -18,16 +16,17 @@ public class Connection
   private String userName;
 
   public boolean isConnected;
+  public int playerId;
 
   private NettyManager manager;
-  private Player player;
 
   public Connection( String ip, int port, String userName )
   {
     this.ip = ip;
     this.port = port;
     this.userName = userName;
-    this.player = new Player();
+    this.playerId = Main.WORLD.createNewPlayer();
+
     try
     {
       this.connect();
@@ -71,23 +70,6 @@ public class Connection
   public void update()
   {
     this.manager.getNetHandler().update();
-    if ( this.manager.getNetHandler() instanceof PlayHandler )
-    {
-      if ( this.player.getHealth() <= 0.0f )
-      {
-        ( (PlayHandler) this.manager.getNetHandler() ).respawn();
-      }
-    }
-  }
-
-  /**
-   * Gets the player that this connection manages
-   *
-   * @return
-   */
-  public Player getPlayer()
-  {
-    return this.player;
   }
 
   private void sleep( int time )

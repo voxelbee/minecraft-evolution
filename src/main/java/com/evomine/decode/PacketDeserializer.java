@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import com.evolution.main.Main;
+import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.EnumPacketDirection;
 import com.google.common.base.CharMatcher;

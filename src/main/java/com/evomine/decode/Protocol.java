@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import com.evolution.main.EnumLoggerType;
-import com.evolution.main.Main;
+import com.evolution.EnumLoggerType;
+import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
 import com.google.gson.JsonObject;
 

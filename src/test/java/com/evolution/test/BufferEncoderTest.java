@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.evolution.main.Main;
+import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
 import com.evomine.decode.Packet;
 import com.evomine.decode.Protocol;

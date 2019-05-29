@@ -3,7 +3,7 @@ package com.evolution.network;
 import java.io.IOException;
 import java.util.List;
 
-import com.evolution.main.Main;
+import com.evolution.Main;
 import com.evolution.network.handler.NettyManager;
 import com.evomine.decode.Packet;
 

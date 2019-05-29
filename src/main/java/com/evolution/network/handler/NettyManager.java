@@ -9,8 +9,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.evolution.main.EnumLoggerType;
-import com.evolution.main.Main;
+import com.evolution.EnumLoggerType;
+import com.evolution.Main;
 import com.evolution.network.Connection;
 import com.evolution.network.EnumConnectionState;
 import com.evolution.network.ITickable;

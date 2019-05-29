@@ -1,4 +1,4 @@
-package com.evolution.player;
+package com.evolution.world;
 
 import io.netty.buffer.ByteBuf;
 
