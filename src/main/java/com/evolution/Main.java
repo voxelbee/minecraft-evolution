@@ -26,7 +26,7 @@ public class Main
 
     for ( int i = 0; i < con.length; i++ )
     {
-      con[ i ] = new Connection( ip, port, "" + i );
+      con[ i ] = new Connection( ip, port, "1" + i );
     }
 
     long aim = 1000 / ticksPerSecond;
@@ -42,7 +42,7 @@ public class Main
       }
 
       long end = System.currentTimeMillis();
-      long timeSleep = aim - ( start - end );
+      long timeSleep = aim - ( end - start );
       if ( timeSleep < 0 )
       {
         LOGGER.log( EnumLoggerType.WARN, "Running behind..." );

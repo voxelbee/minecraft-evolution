@@ -123,6 +123,9 @@ public class PlayHandler implements INetHandler
 
     this.lastPitch = player.pitch;
     this.lastYaw = player.yaw;
+    player.motionX = 0;
+    player.motionY = 0;
+    player.motionZ = 0;
 
     Packet confirm = new Packet( "teleport_confirm", EnumConnectionState.PLAY );
     confirm.params.put( "teleportId", (int) inPacket.params.get( "teleportId" ) );
