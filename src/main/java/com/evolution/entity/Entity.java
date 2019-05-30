@@ -24,6 +24,7 @@ public class Entity
 
   public boolean onGround;
   private boolean sneaking;
+  private boolean sprinting;
 
   private float width;
   private float height;
@@ -107,6 +108,70 @@ public class Entity
       AxisAlignedBB axisalignedbb = this.getBoundingBox();
       this.setBoundingBox( new AxisAlignedBB( axisalignedbb.minX, axisalignedbb.minY, axisalignedbb.minZ, axisalignedbb.minX + this.width,
           axisalignedbb.minY + this.height, axisalignedbb.minZ + this.width ) );
+    }
+  }
+
+  protected float getJumpUpwardsMotion()
+  {
+    return 0.42F;
+  }
+
+  public boolean isSprinting()
+  {
+    return this.sprinting;
+  }
+
+  /**
+   * Causes this entity to do an upwards motion (jumping).
+   */
+  protected void jump()
+  {
+    this.motionY = this.getJumpUpwardsMotion();
+
+    // if ( this.isPotionActive( MobEffects.JUMP_BOOST ) )
+    // {
+    // this.motionY += (float) ( this.getActivePotionEffect( MobEffects.JUMP_BOOST ).getAmplifier() + 1 ) * 0.1F;
+    // }
+
+    if ( this.isSprinting() )
+    {
+      float f = this.yaw * 0.017453292F;
+      this.motionX -= Math.sin( f ) * 0.2F;
+      this.motionZ += Math.cos( f ) * 0.2F;
+    }
+
+    // this.isAirBorne = true;
+
+    double d1 = this.motionX * this.motionX + this.motionZ * this.motionZ;
+
+    if ( d1 < 0.010000000000000002D )
+    {
+      this.setMotionRelative( 0.0F, 0.0F, 1.0F, 0.1F );
+    }
+  }
+
+  public void setMotionRelative( float forward, float upwards, float strafe, float f0 )
+  {
+    float f = forward * forward + upwards * upwards + strafe * strafe;
+
+    if ( f >= 1.0E-4F )
+    {
+      f = (float) Math.sqrt( f );
+
+      if ( f < 1.0F )
+      {
+        f = 1.0F;
+      }
+
+      f = f0 / f;
+      forward = forward * f;
+      upwards = upwards * f;
+      strafe = strafe * f;
+      float f1 = (float) Math.sin( this.yaw * 0.017453292F );
+      float f2 = (float) Math.cos( this.yaw * 0.017453292F );
+      this.motionX += forward * f2 - strafe * f1;
+      this.motionY += upwards;
+      this.motionZ += strafe * f2 + forward * f1;
     }
   }
 

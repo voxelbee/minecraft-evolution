@@ -4,6 +4,7 @@ public class Player extends Entity
 {
   private float health;
   private int food;
+  int count = 0;
 
   public Player()
   {
@@ -16,11 +17,19 @@ public class Player extends Entity
    */
   public void update()
   {
-    this.moveEntity( MoverType.SELF, 0.1f, -0.1f, 0.0f );
+    if ( count % 10 == 0 && this.onGround )
+    {
+      this.jump();
+    }
 
+    this.setMotionRelative( 0.1f, 0.0f, 0.0f, 0.01f );
+    this.moveEntity( MoverType.SELF, this.motionX, this.motionY, this.motionZ );
+
+    this.motionY -= 0.089f;
     // this.posX += this.motionX;
     // this.posY += this.motionY;
     // this.posZ += this.motionZ;
+    count++ ;
   }
 
   public float getHealth()

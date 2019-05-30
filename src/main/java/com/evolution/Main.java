@@ -26,7 +26,7 @@ public class Main
 
     for ( int i = 0; i < con.length; i++ )
     {
-      con[ i ] = new Connection( ip, port, "Playe" + i );
+      con[ i ] = new Connection( ip, port, "" + i );
     }
 
     long aim = 1000 / ticksPerSecond;
