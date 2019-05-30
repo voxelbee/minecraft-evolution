@@ -1,6 +1,6 @@
 package com.evolution.network;
 
-import com.evomine.decode.BufferUtils;
+import com.evomine.network.decode.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

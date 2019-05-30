@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-import com.evomine.decode.BufferUtils;
+import com.evomine.network.decode.BufferUtils;
 
 public class NettyCompressionDecoder extends ByteToMessageDecoder
 {

@@ -4,11 +4,11 @@ import java.util.Map;
 
 import com.evolution.EnumLoggerType;
 import com.evolution.Main;
+import com.evolution.entity.Entity;
+import com.evolution.entity.Player;
 import com.evolution.network.EnumConnectionState;
-import com.evolution.player.Player;
 import com.evolution.world.Chunk;
-import com.evolution.world.Entity;
-import com.evomine.decode.Packet;
+import com.evomine.network.decode.Packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -94,7 +94,8 @@ public class PlayHandler implements INetHandler
     int entityId = (int) inPacket.params.get( "entityId" );
     int entityType = (int) inPacket.params.get( "type" );
 
-    Entity entity = new Entity( entityType );
+    Entity entity = new Entity();
+    entity.setType( entityType );
     entity.posX = (double) inPacket.params.get( "x" );
     entity.posY = (double) inPacket.params.get( "y" );
     entity.posZ = (double) inPacket.params.get( "z" );
@@ -112,9 +113,7 @@ public class PlayHandler implements INetHandler
   public void handlePosition( Packet inPacket )
   {
     Player player = Main.WORLD.getPlayer( playerIndex );
-    player.posX = (double) inPacket.params.get( "x" );
-    player.posY = (double) inPacket.params.get( "y" );
-    player.posZ = (double) inPacket.params.get( "z" );
+    player.setPosition( (double) inPacket.params.get( "x" ), (double) inPacket.params.get( "y" ), (double) inPacket.params.get( "z" ) );
     player.pitch = (float) inPacket.params.get( "pitch" );
     player.yaw = (float) inPacket.params.get( "yaw" );
 
@@ -128,6 +127,8 @@ public class PlayHandler implements INetHandler
     Packet confirm = new Packet( "teleport_confirm", EnumConnectionState.PLAY );
     confirm.params.put( "teleportId", (int) inPacket.params.get( "teleportId" ) );
     this.netManager.sendPacket( confirm );
+
+    System.out.println( "Server mvoed player" );
   }
 
   public void handlePlayerAbilities( Packet packetIn )

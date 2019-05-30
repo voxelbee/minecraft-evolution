@@ -22,7 +22,7 @@ import com.evolution.network.NettyFrameEncoder;
 import com.evolution.network.ThreadQuickExitException;
 import com.evolution.network.compression.NettyCompressionDecoder;
 import com.evolution.network.compression.NettyCompressionEncoder;
-import com.evomine.decode.Packet;
+import com.evomine.network.decode.Packet;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 

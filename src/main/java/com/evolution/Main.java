@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.evolution.network.Connection;
 import com.evolution.world.World;
-import com.evomine.decode.Protocol;
+import com.evomine.network.decode.Protocol;
 import com.google.gson.Gson;
 
 public class Main
@@ -26,7 +26,7 @@ public class Main
 
     for ( int i = 0; i < con.length; i++ )
     {
-      con[ i ] = new Connection( ip, port, "Player" + i );
+      con[ i ] = new Connection( ip, port, "Playe" + i );
     }
 
     long aim = 1000 / ticksPerSecond;

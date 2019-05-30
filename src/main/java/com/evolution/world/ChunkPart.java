@@ -3,7 +3,7 @@ package com.evolution.world;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evomine.decode.BufferUtils;
+import com.evomine.network.decode.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
 

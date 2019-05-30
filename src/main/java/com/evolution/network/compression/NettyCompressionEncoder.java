@@ -5,7 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import java.util.zip.Deflater;
 
-import com.evomine.decode.BufferUtils;
+import com.evomine.network.decode.BufferUtils;
 
 public class NettyCompressionEncoder extends MessageToByteEncoder<ByteBuf>
 {

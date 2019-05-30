@@ -6,8 +6,8 @@ import org.junit.Test;
 
 import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
-import com.evomine.decode.Packet;
-import com.evomine.decode.Protocol;
+import com.evomine.network.decode.Packet;
+import com.evomine.network.decode.Protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

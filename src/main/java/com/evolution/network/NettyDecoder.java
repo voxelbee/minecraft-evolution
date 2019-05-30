@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.evolution.Main;
 import com.evolution.network.handler.NettyManager;
-import com.evomine.decode.Packet;
+import com.evomine.network.decode.Packet;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

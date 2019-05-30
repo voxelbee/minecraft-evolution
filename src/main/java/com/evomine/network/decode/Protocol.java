@@ -1,4 +1,4 @@
-package com.evomine.decode;
+package com.evomine.network.decode;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

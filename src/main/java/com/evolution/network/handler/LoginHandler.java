@@ -3,7 +3,7 @@ package com.evolution.network.handler;
 import com.evolution.EnumLoggerType;
 import com.evolution.Main;
 import com.evolution.network.EnumConnectionState;
-import com.evomine.decode.Packet;
+import com.evomine.network.decode.Packet;
 
 public class LoginHandler implements INetHandler
 {

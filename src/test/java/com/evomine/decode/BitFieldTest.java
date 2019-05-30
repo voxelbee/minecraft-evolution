@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.evomine.network.decode.PacketDeserializer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 

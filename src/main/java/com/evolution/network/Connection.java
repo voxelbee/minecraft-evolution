@@ -7,7 +7,7 @@ import com.evolution.EnumLoggerType;
 import com.evolution.Main;
 import com.evolution.network.handler.LoginHandler;
 import com.evolution.network.handler.NettyManager;
-import com.evomine.decode.Packet;
+import com.evomine.network.decode.Packet;
 
 public class Connection
 {

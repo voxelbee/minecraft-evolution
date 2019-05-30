@@ -7,7 +7,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
 import java.util.List;
 
-import com.evomine.decode.BufferUtils;
+import com.evomine.network.decode.BufferUtils;
 
 public class NettyFrameDecoder extends ByteToMessageDecoder
 {

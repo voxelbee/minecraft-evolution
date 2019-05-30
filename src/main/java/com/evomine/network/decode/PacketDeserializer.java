@@ -1,4 +1,4 @@
-package com.evomine.decode;
+package com.evomine.network.decode;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -215,7 +215,7 @@ public class PacketDeserializer
     return fields;
   }
 
-  static Object processBitfield( JsonArray json,
+  public static Object processBitfield( JsonArray json,
       ByteBuf buf )
   {
     int total = 0;
