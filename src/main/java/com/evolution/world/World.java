@@ -217,4 +217,20 @@ public class World
 
     return list;
   }
+
+  public float getBlockSlipperiness( int id )
+  {
+    if ( id == 79 || id == 174 )
+    {
+      return 0.98F;
+    }
+    else if ( id == 165 )
+    {
+      return 0.8F;
+    }
+    else
+    {
+      return 0.6F;
+    }
+  }
 }

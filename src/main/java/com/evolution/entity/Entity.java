@@ -5,6 +5,8 @@ import java.util.List;
 import com.evolution.Main;
 import com.evolution.util.math.AxisAlignedBB;
 import com.evolution.util.math.BlockPos;
+import com.evolution.util.math.MathHelper;
+import com.evolution.util.math.Vec3d;
 
 public class Entity
 {
@@ -32,6 +34,8 @@ public class Entity
   private boolean isCollidedHorizontally;
   private boolean isCollidedVertically;
   private boolean isCollided;
+
+  private float jumpMovementFactor = 0.02f;
 
   private float fallDistance;
 
@@ -128,19 +132,12 @@ public class Entity
   {
     this.motionY = this.getJumpUpwardsMotion();
 
-    // if ( this.isPotionActive( MobEffects.JUMP_BOOST ) )
-    // {
-    // this.motionY += (float) ( this.getActivePotionEffect( MobEffects.JUMP_BOOST ).getAmplifier() + 1 ) * 0.1F;
-    // }
-
     if ( this.isSprinting() )
     {
       float f = this.yaw * 0.017453292F;
       this.motionX -= Math.sin( f ) * 0.2F;
       this.motionZ += Math.cos( f ) * 0.2F;
     }
-
-    // this.isAirBorne = true;
 
     double d1 = this.motionX * this.motionX + this.motionZ * this.motionZ;
 
@@ -445,6 +442,234 @@ public class Entity
     }
   }
 
+  public boolean isElytraFlying()
+  {
+    return false;
+  }
+
+  /**
+   * returns a (normalized) vector of where this entity is looking
+   */
+  public Vec3d getLookVec()
+  {
+    return this.getVectorForRotation( this.pitch, this.yaw );
+  }
+
+  /**
+   * Creates a Vec3 using the pitch and yaw of the entities rotation.
+   */
+  protected final Vec3d getVectorForRotation( float pitch, float yaw )
+  {
+    float f = (float) Math.cos( -yaw * 0.017453292F - (float) Math.PI );
+    float f1 = (float) Math.sin( -yaw * 0.017453292F - (float) Math.PI );
+    float f2 = -(float) Math.cos( -pitch * 0.017453292F );
+    float f3 = (float) Math.sin( -pitch * 0.017453292F );
+    return new Vec3d( f1 * f2, f3, f * f2 );
+  }
+
+  public boolean isInWater()
+  {
+    return false;
+  }
+
+  public boolean isInLava()
+  {
+    return false;
+  }
+
+  public void travel( float forwards, float upwards, float strafe )
+  {
+    if ( !this.isInWater() )
+    {
+      if ( !this.isInLava() )
+      {
+        if ( this.isElytraFlying() )
+        {
+          if ( this.motionY > -0.5D )
+          {
+            this.fallDistance = 1.0F;
+          }
+
+          Vec3d vec3d = this.getLookVec();
+          float f = this.pitch * 0.017453292F;
+          double d6 = Math.sqrt( vec3d.xCoord * vec3d.xCoord + vec3d.zCoord * vec3d.zCoord );
+          double d8 = Math.sqrt( this.motionX * this.motionX + this.motionZ * this.motionZ );
+          double d1 = vec3d.lengthVector();
+          float f4 = (float) Math.cos( f );
+          f4 = (float) ( (double) f4 * (double) f4 * Math.min( 1.0D, d1 / 0.4D ) );
+          this.motionY += -0.08D + f4 * 0.06D;
+
+          if ( this.motionY < 0.0D && d6 > 0.0D )
+          {
+            double d2 = this.motionY * -0.1D * f4;
+            this.motionY += d2;
+            this.motionX += vec3d.xCoord * d2 / d6;
+            this.motionZ += vec3d.zCoord * d2 / d6;
+          }
+
+          if ( f < 0.0F )
+          {
+            double d10 = d8 * ( -(float) Math.sin( f ) ) * 0.04D;
+            this.motionY += d10 * 3.2D;
+            this.motionX -= vec3d.xCoord * d10 / d6;
+            this.motionZ -= vec3d.zCoord * d10 / d6;
+          }
+
+          if ( d6 > 0.0D )
+          {
+            this.motionX += ( vec3d.xCoord / d6 * d8 - this.motionX ) * 0.1D;
+            this.motionZ += ( vec3d.zCoord / d6 * d8 - this.motionZ ) * 0.1D;
+          }
+
+          this.motionX *= 0.9900000095367432D;
+          this.motionY *= 0.9800000190734863D;
+          this.motionZ *= 0.9900000095367432D;
+          this.moveEntity( MoverType.SELF, this.motionX, this.motionY, this.motionZ );
+        }
+        else
+        {
+          float f6 = 0.91F;
+          BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos =
+              BlockPos.PooledMutableBlockPos.retain( this.posX, this.getBoundingBox().minY - 1.0D, this.posZ );
+
+          if ( this.onGround )
+          {
+            f6 = Main.WORLD.getBlockSlipperiness( Main.WORLD.getBlock( blockpos$pooledmutableblockpos ) ) * 0.91F;
+          }
+
+          float f7 = 0.16277136F / ( f6 * f6 * f6 );
+          float f8;
+
+          if ( this.onGround )
+          {
+            f8 = this.getMovementSpeed() * f7;
+          }
+          else
+          {
+            f8 = this.jumpMovementFactor;
+          }
+
+          this.setMotionRelative( forwards, upwards, strafe, f8 );
+          f6 = 0.91F;
+
+          if ( this.onGround )
+          {
+            f6 = Main.WORLD.getBlockSlipperiness(
+                Main.WORLD.getBlock( blockpos$pooledmutableblockpos.setPos( this.posX, this.getBoundingBox().minY - 1.0D, this.posZ ) ) ) * 0.91F;
+          }
+
+          if ( this.isOnLadder() )
+          {
+            float f9 = 0.15F;
+            this.motionX = MathHelper.clamp( this.motionX, -0.15000000596046448D, 0.15000000596046448D );
+            this.motionZ = MathHelper.clamp( this.motionZ, -0.15000000596046448D, 0.15000000596046448D );
+            this.fallDistance = 0.0F;
+
+            if ( this.motionY < -0.15D )
+            {
+              this.motionY = -0.15D;
+            }
+
+            boolean flag = this.isSneaking() && this instanceof Player;
+
+            if ( flag && this.motionY < 0.0D )
+            {
+              this.motionY = 0.0D;
+            }
+          }
+
+          this.moveEntity( MoverType.SELF, this.motionX, this.motionY, this.motionZ );
+
+          if ( this.isCollidedHorizontally && this.isOnLadder() )
+          {
+            this.motionY = 0.2D;
+          }
+
+          // if ( this.isPotionActive( MobEffects.LEVITATION ) )
+          // {
+          // this.motionY += ( 0.05D * (double) ( this.getActivePotionEffect( MobEffects.LEVITATION ).getAmplifier() + 1
+          // ) - this.motionY ) * 0.2D;
+          // }
+          blockpos$pooledmutableblockpos.setPos( this.posX, 0.0D, this.posZ );
+
+          if ( Main.WORLD.isBlockLoaded( blockpos$pooledmutableblockpos ) )
+          {
+            this.motionY -= 0.08D;
+          }
+          else if ( this.posY > 0.0D )
+          {
+            this.motionY = -0.1D;
+          }
+          else
+          {
+            this.motionY = 0.0D;
+          }
+
+          this.motionY *= 0.9800000190734863D;
+          this.motionX *= f6;
+          this.motionZ *= f6;
+          blockpos$pooledmutableblockpos.release();
+        }
+      }
+      else
+      {
+        double d4 = this.posY;
+        this.setMotionRelative( forwards, upwards, strafe, 0.02F );
+        this.moveEntity( MoverType.SELF, this.motionX, this.motionY, this.motionZ );
+        this.motionX *= 0.5D;
+        this.motionY *= 0.5D;
+        this.motionZ *= 0.5D;
+
+        this.motionY -= 0.02D;
+
+        // if ( this.isCollidedHorizontally
+        // && this.isOffsetPositionInLiquid( this.motionX, this.motionY + 0.6000000238418579D - this.posY + d4,
+        // this.motionZ ) )
+        // {
+        // this.motionY = 0.30000001192092896D;
+        // }
+      }
+    }
+    else
+    {
+      double d0 = this.posY;
+      // float f1 = this.getWaterSlowDown();
+      float f2 = 0.02F;
+      float f3 = 0.0f;
+
+      if ( f3 > 3.0F )
+      {
+        f3 = 3.0F;
+      }
+
+      if ( !this.onGround )
+      {
+        f3 *= 0.5F;
+      }
+
+      // if ( f3 > 0.0F )
+      // {
+      // f1 += ( 0.54600006F - f1 ) * f3 / 3.0F;
+      // f2 += ( this.getAIMoveSpeed() - f2 ) * f3 / 3.0F;
+      // }
+
+      this.setMotionRelative( forwards, upwards, strafe, f2 );
+      this.moveEntity( MoverType.SELF, this.motionX, this.motionY, this.motionZ );
+      // this.motionX *= f1;
+      // this.motionY *= 0.800000011920929D;
+      // this.motionZ *= f1;
+
+      this.motionY -= 0.02D;
+
+      // if ( this.isCollidedHorizontally
+      // && this.isOffsetPositionInLiquid( this.motionX, this.motionY + 0.6000000238418579D - this.posY + d0,
+      // this.motionZ ) )
+      // {
+      // this.motionY = 0.30000001192092896D;
+      // }
+    }
+  }
+
   /**
    * Resets the entity's position to the center (planar) and bottom (vertical) points of its bounding box.
    */
@@ -466,5 +691,15 @@ public class Entity
     {
       this.fallDistance = (float) ( this.fallDistance - y );
     }
+  }
+
+  public float getMovementSpeed()
+  {
+    return 0.69999f;
+  }
+
+  public boolean isOnLadder()
+  {
+    return false;
   }
 }

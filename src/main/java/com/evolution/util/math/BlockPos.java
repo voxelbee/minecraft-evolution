@@ -428,7 +428,7 @@ public class BlockPos extends Vec3i
 
     public BlockPos.MutableBlockPos setPos( double xIn, double yIn, double zIn )
     {
-      return this.setPos( Math.floor( xIn ), Math.floor( yIn ), Math.floor( zIn ) );
+      return this.setPos( (int) Math.floor( xIn ), (int) Math.floor( yIn ), (int) Math.floor( zIn ) );
     }
 
     public BlockPos.MutableBlockPos setPos( Vec3i vec )
@@ -476,7 +476,7 @@ public class BlockPos extends Vec3i
 
     public static BlockPos.PooledMutableBlockPos retain( double xIn, double yIn, double zIn )
     {
-      return retain( Math.floor( xIn ), Math.floor( yIn ), Math.floor( zIn ) );
+      return retain( (int) Math.floor( xIn ), (int) Math.floor( yIn ), (int) Math.floor( zIn ) );
     }
 
     public static BlockPos.PooledMutableBlockPos retain( Vec3i vec )
